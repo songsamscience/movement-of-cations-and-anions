@@ -529,6 +529,20 @@ kbd{
 .cmpgrid .lb{font-size:10.5px;font-weight:600;color:var(--fg3);margin-bottom:4px}
 @media(max-width:560px){.cmpgrid{grid-template-columns:1fr}}
 
+/* 모범 답안을 보고 다시 쓰기 — 처음 답안은 잠긴 채 두고, 새 칸에 다시 정리한다 (§9) */
+.epanel.revp{background:color-mix(in srgb,var(--cu) 11%,transparent);border:1px solid color-mix(in srgb,var(--cu) 40%,transparent)}
+.epanel.revp b{color:var(--cu)}
+.epanel.revp .sub{margin-top:0;margin-bottom:8px;font-size:12px;line-height:1.6}
+.epanel.revp textarea{
+  width:100%;min-height:96px;resize:vertical;padding:12px 14px;border-radius:var(--r-m);
+  border:1px solid var(--line2);background:var(--panel);font-size:14px;line-height:1.65;font-family:inherit;color:var(--fg);
+}
+.epanel.revp textarea:focus{border-color:var(--cu)}
+.epanel.revp .rmeta{display:flex;align-items:center;margin-top:6px}
+.epanel.revp .rlen{font-family:var(--f-num);font-size:11.5px;color:var(--fg3);margin-left:auto}
+.epanel.revp .rlen.ok{color:var(--cu)}
+.chip.rev{background:color-mix(in srgb,var(--cu) 14%,transparent);border-color:color-mix(in srgb,var(--cu) 40%,transparent);color:var(--cu)}
+
 /* ---- 폼 / 토스트 ---- */
 .field{margin-bottom:var(--s3)}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--fg3);margin-bottom:5px}
@@ -920,7 +934,7 @@ kbd{
     </div>
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">
       <h3 style="font-size:14px;margin:0 0 8px;font-family:var(--f-title);font-weight:700">저장된 학습 기록</h3>
-      <p style="font-size:12px;color:var(--fg3);margin:0 0 10px;line-height:1.6">학번·이름, 서술형 답안과 잠금, 힌트 열람 기록, 퀴즈 기록이 모두 지워져요. 되돌릴 수 없습니다.</p>
+      <p style="font-size:12px;color:var(--fg3);margin:0 0 10px;line-height:1.6">학번·이름, 서술형 답안·다시 쓴 답안과 잠금, 힌트 열람 기록, 퀴즈 기록이 모두 지워져요. 되돌릴 수 없습니다.</p>
       <button class="btn sm" id="btnWipe" style="border-color:var(--bad);color:var(--bad)">학습 기록 모두 지우기</button>
     </div>
     <div class="brandfoot">
@@ -1007,7 +1021,7 @@ kbd{
 <!-- 모범 답안 확인 -->
 <div class="modal sm" id="mLock" role="dialog" aria-label="모범 답안 확인" aria-modal="true">
   <div class="mhead"><h2>모범 답안을 볼까요?</h2></div>
-  <div class="mbody"><p style="font-size:14px;color:var(--fg2);line-height:1.7;margin:0">모범 답안을 보면 이 문항의 내 답안은 더 이상 고칠 수 없어요. 지금 볼까요?</p></div>
+  <div class="mbody"><p style="font-size:14px;color:var(--fg2);line-height:1.7;margin:0">모범 답안을 보면 지금까지 쓴 <b>이 문항의 답안은 더 이상 고칠 수 없어요.</b> 대신 모범 답안 아래에 <b>✏️ 다시 쓰기 칸</b>이 열려요. 처음 답안과 다시 쓴 답안이 모두 리포트에 인쇄됩니다. 지금 볼까요?</p></div>
   <div class="mfoot"><button class="btn ghost" data-close>조금 더 써 볼게요</button><button class="btn primary" id="btnLockOk">모범 답안 보고 잠그기</button></div>
 </div>
 
@@ -2148,23 +2162,23 @@ function answer(i,val){
    ============================================================ */
 const ESSAY=[
  {q:'황산 구리(Ⅱ) 수용액을 떨어뜨리고 전류를 흘렸을 때 푸른색이 (−)극 쪽으로 번진 까닭을 설명하시오.',
-  hint:'화면 오른쪽 위 HUD에서 Cu²⁺ 이동 거리가 어느 쪽으로 커지는지 보고, 컨트롤 바의 "무색 이온 보기"를 켜서 SO₄²⁻이 어느 쪽으로 가는지도 함께 확인해 보세요.',
-  model:'푸른색을 띠는 입자는 <mark>구리 이온(Cu²⁺)</mark>이다. Cu²⁺은 전자를 잃어 <mark>(+)전하를 띤 양이온</mark>이므로, 전기력에 의해 반대 전하인 <mark>(−)극 쪽으로 끌려간다</mark>. 그래서 푸른색이 (−)극 쪽으로 번진다.'},
+  hint:'화면 오른쪽 위 계기판에서 <b>Cu²⁺ 이동 거리</b>가 어느 극 쪽으로 늘어나는지 지켜보세요. 이어서 컨트롤 바의 <b>[무색 이온 보기]</b>(M)를 켜면 눈에 보이지 않던 SO₄²⁻이 어느 쪽으로 가는지도 함께 볼 수 있어요.',
+  model:'황산 구리(Ⅱ)는 물에 녹아 Cu²⁺과 SO₄²⁻으로 나뉘는데, 이 가운데 푸른색을 띠는 입자는 <mark>구리 이온(Cu²⁺)</mark>이다. Cu²⁺은 구리 원자가 전자 2개를 잃어 만들어진 <mark>(+)전하를 띤 양이온</mark>이다. 서로 다른 종류의 전하 사이에는 <mark>끌어당기는 전기력</mark>이 작용하므로, Cu²⁺은 (−)전하가 모여 있는 <mark>(−)극 쪽으로 끌려간다</mark>. 그래서 푸른색이 (−)극 쪽으로 번진다.'},
  {q:'과망가니즈산 칼륨 수용액에서는 보라색이 (+)극 쪽으로 번졌습니다. 황산 구리(Ⅱ) 수용액과 방향이 반대인 까닭을 설명하시오.',
   hint:'시약을 과망가니즈산 칼륨으로 바꾸고 전원을 켠 뒤, 범례에서 어떤 이온이 색을 띠는지와 그 이온의 전하를 확인해 보세요.',
-  model:'과망가니즈산 칼륨 수용액에서 색을 띠는 입자는 <mark>과망가니즈산 이온(MnO₄⁻)</mark>으로 <mark>음이온</mark>이다. 음이온은 (+)극 쪽으로 끌려가므로 보라색이 (+)극 쪽으로 번진다. 반면 황산 구리(Ⅱ) 수용액은 색을 띠는 Cu²⁺이 양이온이어서 (−)극 쪽으로 이동한다. <mark>색을 띠는 이온의 전하가 서로 반대</mark>이기 때문에 방향이 반대로 나타난다.'},
+  model:'과망가니즈산 칼륨 수용액에서 색을 띠는 입자는 <mark>과망가니즈산 이온(MnO₄⁻)</mark>으로 <mark>음이온</mark>이다. 음이온은 (+)전하가 모여 있는 <mark>(+)극에 끌려가므로</mark> 보라색이 (+)극 쪽으로 번진다. 반면 황산 구리(Ⅱ) 수용액에서 색을 띠는 Cu²⁺은 양이온이어서 (−)극 쪽으로 이동한다. 두 수용액에서 <mark>색을 띠는 이온의 전하가 서로 반대</mark>이기 때문에 번지는 방향도 반대로 나타난다.'},
  {q:'거름종이를 질산 칼륨 수용액으로 충분히 적시는 까닭을 설명하시오.',
-  hint:'전원 장치 화면의 전류(AMPS) 값을 보세요. 이론 학습 드로어의 다섯 번째 카드도 함께 열어 보면 좋아요.',
+  hint:'전원 장치 화면의 <b>전류(AMPS)</b> 값이 0인지 아닌지 확인해 보세요. 이론 학습 드로어(📖)의 <b>「질산 칼륨 수용액은 왜 필요할까」</b> 카드도 함께 열어 보면 좋아요.',
   model:'질산 칼륨 수용액은 물에 녹아 K⁺과 NO₃⁻ 이온을 내놓는 <mark>전해질</mark>이어서 거름종이에 <mark>전류가 흐를 수 있는 길</mark>을 만들어 준다. 또 이 두 이온은 <mark>색이 없어</mark> 구리 이온이나 과망가니즈산 이온의 색 변화를 관찰하는 데 방해가 되지 않는다.'},
  {q:'전압을 5 V에서 20 V로 올렸을 때 색이 번지는 빠르기가 어떻게 달라졌는지 쓰고, 그 까닭을 설명하시오.',
   hint:'전압 슬라이더를 5 V로 두고 경과 시간과 이동 거리를 적어 둔 뒤, 실험 초기화 후 20 V로 다시 해서 같은 시간의 이동 거리를 비교해 보세요.',
-  model:'전압을 올릴수록 색이 <mark>더 빠르게</mark> 번졌다. 전압이 높아지면 두 극 사이의 <mark>전기장이 세져</mark> 이온이 받는 전기력이 커지기 때문이다. 그래서 같은 시간 동안 이온이 이동한 거리가 더 길어진다.'},
+  model:'전압을 올릴수록 색이 <mark>더 빠르게</mark> 번졌다. 전극 사이의 거리는 그대로인데 전압만 높아지면 두 극 사이의 <mark>전기장(전압 ÷ 전극 사이 거리)이 세지고</mark>, 그만큼 이온이 받는 <mark>전기력이 커지기</mark> 때문이다. 그래서 같은 시간 동안 이온이 이동한 거리가 더 길어진다.'},
  {q:'이 실험 결과가 "이온은 전하를 띠고 있다"는 것의 증거가 되는 까닭을 설명하시오.',
   hint:'전원을 끈 채로 한참 두었을 때와 전원을 켰을 때 색 띠의 모양이 어떻게 다른지 비교해 보고, 두 수용액의 결과를 함께 떠올려 보세요.',
-  model:'전류를 흘리지 않으면 색은 사방으로 조금 퍼질 뿐 <mark>한쪽으로 치우치지 않는다</mark>. 그러나 전류를 흘리면 색을 띠는 부분이 <mark>정해진 한쪽 극으로만</mark> 이동한다. 전기력은 전하를 띤 입자에만 작용하므로, 이온이 특정 극으로 끌려갔다는 것은 <mark>이온이 전하를 띠고 있다는 증거</mark>가 된다.'}
+  model:'전류를 흘리지 않으면 색은 사방으로 고르게 조금씩 퍼질 뿐 <mark>한쪽으로 치우치지 않는다</mark>. 그러나 전류를 흘리면 색을 띠는 부분이 <mark>정해진 한쪽 극으로만</mark> 이동한다. 게다가 그 방향이 수용액마다 달라서, 푸른색(Cu²⁺)은 (−)극으로, 보라색(MnO₄⁻)은 (+)극으로 갔다. 전기력은 <mark>전하를 띤 입자에만</mark> 작용하고 전하의 종류에 따라 방향이 정해지므로, 이 결과는 <mark>이온이 전하를 띠고 있다는 증거</mark>가 된다.'}
 ];
 let ES=S.get('essay',{});
-function esGet(i){ ES[i]=ES[i]||{a:'',lock:false,hint:false}; return ES[i]; }
+function esGet(i){ ES[i]=ES[i]||{a:'',r:'',lock:false,hint:false}; if(ES[i].r===undefined) ES[i].r=''; return ES[i]; }
 function essayFilled(){ let n=0; for(let i=0;i<ESSAY.length;i++) if((esGet(i).a||'').trim().length>=20) n++; return n; }
 function renderEssay(){
   $('#essayList').innerHTML=ESSAY.map((e,i)=>{
@@ -2173,7 +2187,8 @@ function renderEssay(){
       +'<summary><span class="qi">'+(i+1)+'</span><span>'+e.q+'</span><span class="tags">'
       +(ok?'<span class="chip ok">작성함</span>':'')
       +(s.hint?'<span class="chip hint">힌트 봄</span>':'')
-      +(s.lock?'<span class="chip lock">모범 답안 열람 · 수정 잠김</span>':'')
+      +(s.lock?'<span class="chip lock">처음 답안 잠김</span>':'')
+      +(((s.r||'').trim().length>=5)?'<span class="chip rev">다시 씀</span>':'')
       +'</span></summary><div class="ebody">'
       +'<textarea data-t="'+i+'" placeholder="관찰한 내용을 바탕으로 내 문장으로 설명해 보세요. (두세 문장이면 충분합니다)"'
       +(s.lock?' readonly':'')+'>'+esc(s.a)+'</textarea>'
@@ -2185,13 +2200,30 @@ function renderEssay(){
       +'<div class="epanel modelp'+(s.lock?' on':'')+'" data-mp="'+i+'"><b>모범 답안 · 이렇게 쓰면 좋아요</b>'+e.model
       +'<div class="cmpgrid"><div><div class="lb">내가 쓴 답안</div>'+esc(s.a||'(작성하지 않음)')+'</div>'
       +'<div><div class="lb">모범 답안 핵심</div>'+e.model.replace(/<\/?mark>/g,'')+'</div></div></div>'
+      +'<div class="epanel revp'+(s.lock?' on':'')+'" data-rp="'+i+'"><b>✏️ 모범 답안을 보고 다시 쓰기</b>'
+      +'<div class="sub">처음 쓴 답안은 그대로 남습니다. 모범 답안과 견주어 빠뜨린 내용을 채워 <b style="display:inline;color:inherit">내 문장으로 다시</b> 정리해 보세요.</div>'
+      +'<textarea data-r="'+i+'" placeholder="모범 답안에서 새로 알게 된 내용을 넣어 다시 써 보세요.">'+esc(s.r||'')+'</textarea>'
+      +'<div class="rmeta"><span class="rlen'+(((s.r||'').trim().length>=5)?' ok':'')+'" data-rl="'+i+'">'+(s.r||'').length+'자</span></div></div>'
       +'</div></details>';
   }).join('');
   $('#essayCnt').textContent=essayFilled()+' / '+ESSAY.length+' 작성';
   bindEssay(); paintSteps();
 }
 function bindEssay(){
-  $$('#essayList textarea').forEach(ta=>{
+  $$('#essayList textarea[data-r]').forEach(rta=>{
+    rta.addEventListener('input',()=>{
+      const i=+rta.dataset.r, s=esGet(i);
+      s.r=rta.value; S.set('essay',ES);
+      const rl=$('[data-rl="'+i+'"]');
+      rl.textContent=rta.value.length+'자';
+      rl.classList.toggle('ok',rta.value.trim().length>=5);
+      const tags=rta.closest('.ecard').querySelector('.tags');
+      const has=tags.querySelector('.chip.rev');
+      if(rta.value.trim().length>=5&&!has) tags.insertAdjacentHTML('beforeend','<span class="chip rev">다시 씀</span>');
+      if(rta.value.trim().length<5&&has) has.remove();
+    });
+  });
+  $$('#essayList textarea[data-t]').forEach(ta=>{
     ta.addEventListener('input',()=>{
       const i=+ta.dataset.t, s=esGet(i); if(s.lock) return;
       s.a=ta.value; S.set('essay',ES);
@@ -2228,7 +2260,9 @@ $('#btnLockOk').onclick=()=>{
   const s=esGet(i); s.lock=true; S.set('essay',ES);
   closeOv('#mLock'); renderEssay();
   const card=$('.ecard[data-i="'+i+'"]'); if(card){ card.open=true; card.scrollIntoView({block:'nearest'}); }
-  toast('모범 답안을 열었어요. 이 문항의 답안은 그대로 남겨 두었어요');
+  toast('모범 답안을 열었어요. 아래 ‘다시 쓰기’ 칸에 새로 정리해 보세요');
+  const rta=$('#essayList textarea[data-r="'+i+'"]');
+  if(rta) setTimeout(()=>{ rta.scrollIntoView({block:'nearest',behavior:'smooth'}); rta.focus(); },180);
   pendingLock=null;
 };
 
@@ -2300,12 +2334,14 @@ function buildReport(){
   if(opt.e){
     h+='<div class="psec"><h2>탐구 질문 서술형 답안</h2>';
     ESSAY.forEach((e,i)=>{
-      const s=esGet(i);
+      const s=esGet(i), rv=(s.r||'').trim();
       const tag=(s.lock?'<span class="tag">모범 답안 열람함</span>':'<span class="tag">열람 전 스스로 작성</span>')
-        +(s.hint?'<span class="tag">힌트 봄</span>':'');
+        +(s.hint?'<span class="tag">힌트 봄</span>':'')
+        +(rv?'<span class="tag">모범 답안 보고 다시 씀</span>':'');
       h+='<div class="pitem"><div class="q">'+(i+1)+'. '+e.q+tag+'</div>'
-        +'<div class="a"><span class="lb">내가 쓴 답안</span>'+(esc(s.a)||'(작성하지 않음)')+'</div>'
+        +'<div class="a"><span class="lb">'+(rv?'처음 쓴 답안':'내가 쓴 답안')+'</span>'+(esc(s.a)||'(작성하지 않음)')+'</div>'
         +(opt.m?'<div class="a model"><span class="lb">모범 답안</span>'+e.model.replace(/<\/?mark>/g,'')+'</div>':'')
+        +(rv?'<div class="a"><span class="lb">모범 답안을 보고 다시 쓴 답안</span>'+esc(rv)+'</div>':'')
         +'</div>';
     });
     h+='</div>';
@@ -2349,7 +2385,9 @@ function buildBlankSheet(teacher){
    +'<div class="psec"><h2>탐구 질문 (서술형)</h2>';
   ESSAY.forEach((e,i)=>{
     h+='<div class="pitem"><div class="q">'+(i+1)+'. '+e.q+'</div>'
-      +'<div class="lines"></div><div class="lines"></div><div class="lines"></div><div class="lines"></div></div>';
+      +'<div class="lines"></div><div class="lines"></div><div class="lines"></div><div class="lines"></div>'
+      +'<div class="lb" style="margin-top:2mm">모범 답안을 보고 다시 쓴 답안</div>'
+      +'<div class="lines"></div><div class="lines"></div><div class="lines"></div></div>';
   });
   h+='</div><div class="psec"><h2>확인 문제</h2>';
   QUIZ.forEach((Q,i)=>{
@@ -2447,7 +2485,7 @@ $('#btnTheme').onclick=()=>setTheme(document.documentElement.getAttribute('data-
 $('#btnHelp').onclick=()=>openOv('#mHelp');
 $('#btnFs').onclick=toggleFs;
 $('#btnWipe').onclick=()=>{
-  if(confirm('학번·이름, 서술형 답안과 잠금, 힌트 열람 기록, 퀴즈 기록이 모두 지워져요. 계속할까요?')){
+  if(confirm('학번·이름, 서술형 답안·다시 쓴 답안과 잠금, 힌트 열람 기록, 퀴즈 기록이 모두 지워져요. 계속할까요?')){
     S.wipe(); location.reload();
   }
 };
