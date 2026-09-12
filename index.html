@@ -299,6 +299,9 @@ textarea,input{caret-color:var(--accent-strong)}
 #app[data-narrow="on"] .dishctl .dl{display:none}
 #app[data-narrow="on"] .dishctl .segsel{width:100%}
 #app[data-narrow="on"] .dishctl .segsel button{flex:1; min-width:0; padding-left:9px; padding-right:9px}
+#app[data-narrow="on"] .dishctl .segsel.tog button{flex:1 1 auto; padding-left:7px; padding-right:7px}   /* 표시 전환 4개는 글자 길이만큼 나눠 320px 에서도 넘치지 않게 */
+#app[data-narrow="on"] .segsel button .fl{display:none}
+#app[data-narrow="on"] .segsel button .sl{display:inline}
 #app[data-narrow="on"] .legend{gap:2px 10px}
 #app[data-narrow="on"] .legend .ln{display:none}          /* 이온 이름은 접고 기호와 방향만 남긴다 */
 #app[data-narrow="on"] .gauge{column-gap:var(--s3)}
@@ -415,6 +418,7 @@ input[type=range]::-moz-range-thumb{
   padding:var(--panel-pad);display:flex;flex-direction:column;gap:10px;
   max-height:calc(100% - var(--s6));
 }
+.gauge>:not(.tray){flex-shrink:0}   /* 높이가 모자라면 담아 둔 조건 목록만 줄어 스크롤된다 — 버튼·계기 줄은 눌리지 않게 */
 .gauge .grow{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2)}
 .gauge .k{font-size:12px;font-weight:500;color:var(--text-2);display:flex;align-items:center;gap:6px}
 .gauge .k i{width:9px;height:9px;border-radius:var(--r-pill);flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
@@ -461,14 +465,21 @@ input[type=range]::-moz-range-thumb{
   max-width:min(560px,calc(100% - var(--s6)));
 }
 #app[data-layout="compact"] .dishctl{bottom:calc(var(--h-psu,150px) + var(--s5))}
+#app[data-layout="compact"] .legend .ln{display:none}    /* 세로로 긴 화면에서 범례가 네 줄로 늘어 접시 자리를 먹지 않게 — 기호와 방향만 */
 .dishctl .dl{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--text-2)}
 .dishctl .dl svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;
   padding-top:8px;border-top:1px solid var(--line-1);width:100%}
-.legend span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-2)}
+.legend>span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-2)}
 .legend i{width:10px;height:10px;border-radius:var(--r-pill);flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28)}
 .legend em{font-style:normal;color:var(--text-3)}
 .legend b{font-weight:inherit}
+/* 전하 보기 — 범례 견본 구슬에도 캔버스 구슬과 같은 +·− 부호를 새긴다 */
+.legend i.q{position:relative;width:14px;height:14px}
+.legend i.q::before,.legend i.q.qp::after{content:'';position:absolute;left:50%;top:50%;
+  background:currentColor;border-radius:1px;transform:translate(-50%,-50%)}
+.legend i.q::before{width:7px;height:2px}
+.legend i.q.qp::after{width:2px;height:7px}
 
 /* ---------------- 세그먼트 · 버튼 공통 ---------------- */
 .segsel{display:flex;gap:2px;padding:3px;border-radius:var(--r-2);
@@ -480,6 +491,7 @@ input[type=range]::-moz-range-thumb{
   transition:background var(--motion-fast) var(--ease-in),color var(--motion-fast) var(--ease-in);
 }
 .segsel button::before{content:'';position:absolute;inset:-5px 0}
+.segsel button .sl{display:none}                           /* 좁은 화면용 짧은 이름 */
 .segsel button svg{width:var(--icon-size);height:var(--icon-size);
   fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .segsel button i{width:10px;height:10px;border-radius:var(--r-pill);flex:none;
@@ -588,10 +600,17 @@ a.btn{text-decoration:none}
 .qfb{margin-top:var(--s4);padding:13px 15px;border-radius:var(--r-2);font-size:13px;line-height:1.65}
 .qfb.o{background:var(--success-soft);border:1px solid var(--success-line)}
 .qfb.x{background:var(--warning-soft);border:1px solid var(--warning-line)}
-.qfb b{display:block;font-size:13px;margin-bottom:4px}
+.qfb>b:first-child{display:block;font-size:13px;margin-bottom:4px}
 .qdone{text-align:center;padding:var(--s8) 0}
 .qdone .big{font-size:clamp(22px,6vw,28px);font-weight:800;font-variant-numeric:tabular-nums;margin-bottom:var(--s2)}
 .qdone p{font-size:15px;color:var(--text-2);margin-bottom:var(--s5)}
+
+/* 이온식 · 단위의 첨자 — 유니코드 첨자 글리프(²⁺ ₄)는 글꼴마다 빠지거나 크기가 달라
+   ⁺·⁻ 이 기준선으로 내려앉는다. 화면에 넣을 때 실제 sup·sub 로 바꿔 어느 글꼴에서도 같은 자리에 둔다 */
+.fx{white-space:nowrap}
+.fx sup,.fx sub{position:relative;vertical-align:baseline;font-size:.7em;line-height:0;font-weight:inherit}
+.fx sup{top:-.5em}
+.fx sub{top:.26em}
 
 /* 탐구 질문 */
 .ecard{border:1px solid var(--line-1);border-radius:var(--r-3);background:var(--surface-1);
@@ -613,7 +632,8 @@ a.btn{text-decoration:none}
 .emeta .len.ok{color:var(--success)}
 .epanel{display:none;margin-top:11px;padding:12px 13px;border-radius:var(--r-2);font-size:13px;line-height:1.7}
 .epanel.on{display:block}
-.epanel b{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+.epanel>b:first-child{display:block;font-size:13px;font-weight:600;margin-bottom:5px}   /* 패널 제목만 — 힌트 문장 속 굵은 낱말은 줄을 바꾸지 않는다 */
+.epanel b{font-weight:700}
 .epanel .sub{margin-top:7px;font-size:12px;color:var(--text-2)}
 .epanel mark{background:color-mix(in srgb,var(--success) 26%,transparent);color:inherit;
   padding:0 2px;border-radius:3px}
@@ -941,13 +961,15 @@ a.btn{text-decoration:none}
             <button data-rg="mn" aria-pressed="false"><i style="background:#7B2D8E"></i>과망가니즈산 칼륨</button>
           </div>
           <div class="segsel tog sm" role="group" aria-label="표시 전환">
-            <button id="btnShowAll" aria-pressed="false" title="무색 이온까지 모형으로 표시 (M)">무색 이온 보기</button>
+            <button id="btnShowAll" aria-pressed="false" title="색이 없어 보이지 않는 짝 이온(SO₄²⁻·K⁺)을 모형으로 표시 (M)"><span class="fl">무색 이온 보기</span><span class="sl">무색 이온</span></button>
+            <button id="btnElec" aria-pressed="false" title="질산 칼륨의 K⁺·NO₃⁻이 움직이는 모습 표시 (K)"><span class="fl">전해질 이온 이동 관찰</span><span class="sl">전해질 이온</span></button>
+            <button id="btnCharge" aria-pressed="false" title="움직이는 이온이 띤 전하를 +·− 부호로 표시 (Q)">전하 보기</button>
             <button id="btnField" aria-pressed="false" title="전기력 방향 표시 (E)">전기력 표시</button>
           </div>
           <div class="legend" id="legend"></div>
         </div>
 
-        <p class="sr" id="live" aria-live="polite"></p>
+        <p class="sr" id="live" aria-live="polite" data-nofx></p>
       </div>
     </section>
 
@@ -978,7 +1000,7 @@ a.btn{text-decoration:none}
 <aside class="drawer" id="drawer" role="dialog" aria-label="이론 학습">
   <div class="dhead">
     <h2>이론 학습</h2>
-    <span class="chip num" id="tcPos">1 / 6</span>
+    <span class="chip num" id="tcPos">1 / 7</span>
     <button class="iconbtn" id="drawerClose" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
   </div>
   <div class="dbody scroll" id="theoryBody"></div>
@@ -996,16 +1018,18 @@ a.btn{text-decoration:none}
   <div class="mbody scroll">
     <h3>이 실험대에서 하는 일</h3>
     <ul>
-      <li>접시 양 끝의 <b>구리 금속판</b>에 검정(−)·빨강(+) 집게가 물려 있고, 두 전선은 화면 밖 전원 장치로 이어집니다. 전압과 전원은 아래 <b>전원 장치</b> 패널에서 조작해요.</li>
+      <li>접시 양 끝의 <b>구리 금속판</b>에 검정(−)·빨강(+) 집게가 물려 있고, 두 전선은 화면 밖 전원 장치로 이어집니다. 전압과 전원은 <b>전원 장치</b> 패널에서 조작해요.</li>
       <li>전압을 정하고 전원을 켜면 (−)극과 (+)극이 생기고, 거름종이 위 수용액의 색을 띠는 이온이 한쪽 극으로 이동합니다.</li>
-      <li><b>무색 이온 보기</b>를 켜면 눈에 보이지 않는 짝 이온과 질산 칼륨의 이온까지 모형으로 볼 수 있어요.</li>
+      <li><b>무색 이온 보기</b>를 켜면 색이 없어 눈에 보이지 않는 짝 이온을 모형으로 볼 수 있어요. 황산 구리(Ⅱ) 수용액에서는 <b>SO₄²⁻</b>, 과망가니즈산 칼륨 수용액에서는 <b>K⁺</b>이 나타나요. 무색 이온은 속이 빈 구슬로 그리고, <b>테두리 색</b>(SO₄²⁻ 분홍 · K⁺ 주황 · NO₃⁻ 초록)으로 종류를 구분해요. 실제 색이 아니라 구분을 위한 표시예요. 색만으로 구분하기 어려우면 <b>전하 보기</b>를 함께 켜 부호로도 구분할 수 있어요.</li>
+      <li><b>전해질 이온 이동 관찰</b>을 켜면 거름종이를 적신 질산 칼륨의 <b>K⁺은 (−)극</b>, <b>NO₃⁻은 (+)극</b> 쪽으로 움직이는 모습을 자취와 기호로 볼 수 있어요.</li>
+      <li><b>전하 보기</b>를 켜면 움직이는 이온 구슬마다 띠고 있는 전하가 <b>+·− 부호</b>로 나타나요. (+)전하를 띤 양이온은 (−)극 쪽으로, (−)전하를 띤 음이온은 (+)극 쪽으로 가는지 확인해 보세요. 부호는 전하의 종류만 나타내며, 전하의 양은 Cu²⁺의 ‘2+’처럼 이온식에서 읽어요.</li>
     </ul>
     <h3>단축키</h3>
     <div class="kbd">
       <b>Space</b><span>전원 켜기·끄기</span>
       <b>↑ ↓</b><span>전압 0.5 V씩</span>
       <b>1 / 2</b><span>측면 보기 / 위에서 보기</span>
-      <b>M / E</b><span>무색 이온 보기 / 전기력 표시</span>
+      <b>M / K / Q / E</b><span>무색 이온 보기 / 전해질 이온 이동 관찰 / 전하 보기 / 전기력 표시</span>
       <b>C</b><span>이 조건 담기</span>
       <b>T / R / H</b><span>이론 학습 / 학습 리포트 / 도움말</span>
       <b>D / F</b><span>테마 전환 / 전체화면</span>
@@ -1070,7 +1094,7 @@ a.btn{text-decoration:none}
     <label class="check"><input type="checkbox" class="safe"><span>전원 장치는 <b>전압을 0 V로 내린 뒤</b> 전선을 연결하고, 젖은 손으로 단자를 만지지 않습니다.</span></label>
     <label class="check"><input type="checkbox" class="safe"><span>과망가니즈산 칼륨은 옷과 피부에 물이 잘 빠지지 않는 자국을 남기므로 흘리지 않습니다.</span></label>
     <label class="check"><input type="checkbox" class="safe"><span>실험이 끝나면 전원을 끄고, 남은 수용액은 선생님의 안내에 따라 버립니다.</span></label>
-    <p class="note warn" style="margin-top:12px">전극에서는 실제로 물의 전기 분해가 함께 일어나 기체가 조금씩 생깁니다.
+    <p class="note warn" style="margin-top:12px">실제 실험에서는 전극에서도 화학 반응이 일어나 기체 거품이 생기거나 전극 표면이 변하기도 합니다.
       이 실험실은 <b>이온의 이동</b>만 다루므로 전극 반응은 나타내지 않았어요.</p>
   </div>
   <div class="mfoot">
@@ -1180,6 +1204,95 @@ function shade(hex,amt){
   return '#'+[f(n>>16&255),f(n>>8&255),f(n&255)].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 이온식 첨자 조판 ----------
+   원문은 읽기 쉬운 유니코드(Cu²⁺ · SO₄²⁻ · m²V⁻¹)로 적어 두고, 화면에 들어가는 순간 진짜 첨자로 바꾼다.
+   ⁺·⁻·₄ 같은 글리프는 글꼴에 없거나 크기가 제각각이라 전하가 기준선에 내려앉아 보이기 때문이다.
+   HTML → <sup>·<sub>, SVG → 올리고 내린 <tspan>, 캔버스 → fxText 가 작은 글씨를 올려 그린다 */
+const FX_SUP={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁺':'+','⁻':'−'};
+const FX_SUB={'₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9'};
+const FX_ANY=/[⁰¹²³⁴-⁹⁺⁻₀-₉]/;
+const FX_TOKEN=/[A-Za-z0-9()]*(?:[⁰¹²³⁴-⁹⁺⁻₀-₉]+[A-Za-z0-9()]*)+/g;   /* 이온식·단위 한 덩어리 (줄바꿈 금지) */
+const SVGNS='http://www.w3.org/2000/svg';
+/* 'SO₄²⁻' → [{t:'SO',k:0},{t:'4',k:2},{t:'2−',k:1}] · k 0 보통 · 1 위첨자 · 2 아래첨자 */
+function fxSplit(s){
+  const out=[]; let cur=null;
+  for(const ch of String(s)){
+    const k = FX_SUP[ch]!=null ? 1 : FX_SUB[ch]!=null ? 2 : 0;
+    const c = k===1 ? FX_SUP[ch] : k===2 ? FX_SUB[ch] : ch;
+    if(cur && cur.k===k) cur.t+=c; else out.push(cur={t:c,k:k});
+  }
+  return out;
+}
+function fxTextNode(tn){
+  const s=tn.data, par=tn.parentNode;
+  if(!par || !FX_ANY.test(s)) return;
+  const frag=document.createDocumentFragment();
+  if(par.namespaceURI===SVGNS){                 /* SVG 글자 — 크기를 줄인 tspan 을 dy 로 올리고 다음 조각에서 되돌린다 */
+    let shift=0;
+    fxSplit(s).forEach(r=>{
+      const f=r.k?0.7:1, want=r.k===1?-0.36:r.k===2?0.2:0, ts=document.createElementNS(SVGNS,'tspan');
+      if(r.k) ts.setAttribute('font-size','70%');
+      if(want!==shift) ts.setAttribute('dy',((want-shift)/f).toFixed(3)+'em');
+      ts.textContent=r.t; frag.appendChild(ts); shift=want;
+    });
+  } else {
+    let last=0;
+    s.replace(FX_TOKEN,(m,off)=>{
+      if(off>last) frag.appendChild(document.createTextNode(s.slice(last,off)));
+      const sp=document.createElement('span'); sp.className='fx';
+      fxSplit(m).forEach(r=>{
+        if(!r.k){ sp.appendChild(document.createTextNode(r.t)); return; }
+        const e=document.createElement(r.k===1?'sup':'sub'); e.textContent=r.t; sp.appendChild(e);
+      });
+      frag.appendChild(sp); last=off+m.length; return m;
+    });
+    if(last<s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+  }
+  par.replaceChild(frag,tn);
+}
+const FX_SKIP='script,style,textarea,title,[data-nofx]';
+function chemify(root){
+  if(!root) return;
+  if(root.nodeType===3){ const p=root.parentElement; if(p && !p.closest(FX_SKIP)) fxTextNode(root); return; }
+  if(root.nodeType!==1 || root.closest(FX_SKIP)) return;
+  if(!FX_ANY.test(root.textContent)) return;
+  const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>
+    (FX_ANY.test(n.data) && !n.parentElement.closest(FX_SKIP)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP});
+  const list=[]; while(tw.nextNode()) list.push(tw.currentNode);
+  list.forEach(fxTextNode);
+}
+/* 화면에 새로 들어오는 글자(토스트·안내·범례·카드·인쇄물)를 한 곳에서 조판한다.
+   바꾼 결과에는 유니코드 첨자가 남지 않으므로 다시 불려도 곧바로 끝난다 */
+new MutationObserver(ms=>{
+  for(const m of ms){
+    if(m.type==='characterData') chemify(m.target);
+    else for(const n of m.addedNodes) chemify(n);
+  }
+}).observe(document.body,{childList:true,subtree:true,characterData:true});
+
+/* 캔버스용 — 보통·위·아래 조각을 잇대어 그린다. base 는 호출한 쪽의 textBaseline 을 흉내 낸 것
+   (Pretendard 대문자 높이 ≈ 0.72em 기준 : middle = 대문자 가운데가 y) */
+const FX_BASE={alphabetic:0,middle:.36,top:.92,bottom:-.22}, FX_RISE=[0,-.34,.18];
+let FX_FAM='';
+function fxFont(px,wt){ if(!FX_FAM) FX_FAM=cssVar('--font-ui')||'sans-serif'; return wt+' '+px.toFixed(2)+'px '+FX_FAM; }
+function fxWidth(g,s,px,wt){
+  let w=0; for(const r of fxSplit(s)){ g.font=fxFont(r.k?px*.7:px,wt); w+=g.measureText(r.t).width; }
+  return w;
+}
+function fxText(g,s,x,y,px,wt,o){
+  o=o||{};
+  const runs=fxSplit(s), w=fxWidth(g,s,px,wt), al=o.align||'left';
+  const x0 = al==='center' ? x-w/2 : al==='right' ? x-w : x;
+  const yb = y+px*(FX_BASE[o.base||'alphabetic']||0);
+  g.save(); g.textAlign='left'; g.textBaseline='alphabetic';
+  const pass=fn=>{ let cx=x0; for(const r of runs){
+    g.font=fxFont(r.k?px*.7:px,wt); fn(r.t,cx,yb+FX_RISE[r.k]*px); cx+=g.measureText(r.t).width; } };
+  if(o.stroke){ g.strokeStyle=o.stroke; g.lineWidth=o.lw||3; g.lineJoin='round'; pass((t,a,b)=>g.strokeText(t,a,b)); }
+  if(o.fill){ g.fillStyle=o.fill; pass((t,a,b)=>g.fillText(t,a,b)); }
+  g.restore();
+  return w;
+}
 
 /* ==========================================================================
    1. 저장 정책 — 기기 설정은 이 기기에, 학습 기록은 기본 세션에만
@@ -1347,20 +1460,25 @@ const KT_E=0.025693;   /* kT/e (V, 25 ℃) */
 const R_CELL=147;      /* 젖은 거름종이 저항 Ω → 15.0 V 에서 0.102 A */
 const OBS_MM=6.0, OBS_T=150, OBS_WATCH=10;   /* 결과 안내 시점 */
 
+/* 무색 이온은 실제로 색이 없다 — 속이 빈 유리구슬로 그리고, 종류를 구분하는 표시색(tint)은 테두리에만 둔다.
+   전하 보기를 켜면 구슬 속에 전하 부호(+·−)를 새겨, 색 하나에 기대지 않고 부호로도 구분된다 */
+const TINT={ 'K⁺':'#D28B1D', 'NO₃⁻':'#2E9E5B', 'SO₄²⁻':'#C4609A' };
 const REAGENT={
   cu:{ key:'cu', label:'황산 구리(Ⅱ) 수용액', short:'황산 구리(Ⅱ)', formula:'CuSO₄', colored:'cat',
        cat:{sym:'Cu²⁺',  name:'구리 이온',        z: 2, u:5.56e-8, color:'#3FA3D1', lam:107.2},
-       an :{sym:'SO₄²⁻', name:'황산 이온',        z:-2, u:8.29e-8, color:null,      lam:160.0} },
+       an :{sym:'SO₄²⁻', name:'황산 이온',        z:-2, u:8.29e-8, color:null, tint:TINT['SO₄²⁻'], lam:160.0} },
   mn:{ key:'mn', label:'과망가니즈산 칼륨 수용액', short:'과망가니즈산 칼륨', formula:'KMnO₄', colored:'an',
-       cat:{sym:'K⁺',    name:'칼륨 이온',        z: 1, u:7.62e-8, color:null,      lam:73.5},
+       cat:{sym:'K⁺',    name:'칼륨 이온',        z: 1, u:7.62e-8, color:null, tint:TINT['K⁺'],    lam:73.5},
        an :{sym:'MnO₄⁻', name:'과망가니즈산 이온', z:-1, u:6.35e-8, color:'#7B2D8E', lam:61.3} }
 };
-const KNO3={ cat:{sym:'K⁺',z:1,u:7.62e-8}, an:{sym:'NO₃⁻',z:-1,u:7.41e-8} };
+const KNO3={ cat:{sym:'K⁺',   name:'칼륨 이온', z: 1, u:7.62e-8, color:null, tint:TINT['K⁺']},
+             an :{sym:'NO₃⁻', name:'질산 이온', z:-1, u:7.41e-8, color:null, tint:TINT['NO₃⁻']} };
+const ELEC_TAG=4;      /* 기호를 붙여 따라가는 추적 이온 쌍의 수 — 색 있는 이온보다 눈에 띄지 않도록 몇 쌍만 */
 
 /* ---------- 실험 상태 (simulationState) ---------- */
 const L={
   view:Dev.get('view','side'), reagent:'cu', volt:Dev.get('volt',15), power:false,
-  speed:Dev.get('speed',30), showAll:false, showField:false,
+  speed:Dev.get('speed',30), showAll:false, showElec:false, showField:false, showCharge:false,
   t:0, watch:0, started:false, wireAnim:0, powerAnim:0,
   prepOk:Learn.get('prep',false),
   poe:Learn.get('poe',null), poeDone:Learn.get('poeDone',false),
@@ -1376,7 +1494,8 @@ const SIM={list:[],bg:[],x0:{cat:.5,an:.5}};   /* x0 = 색소를 떨어뜨린 �
 function makeIon(spec,role,cx,sigma){
   return { z:spec.z, u:spec.u, col:spec.color, sym:spec.sym, role:role,
     x:clamp(cx+gauss()*sigma,.02,.98), y:gauss()*0.16, d:0.18+Math.random()*0.64,
-    r:0.78+Math.random()*0.5, ph:Math.random()*6.283 };
+    r:0.78+Math.random()*0.5, ph:Math.random()*6.283,
+    tint:spec.tint||null, tag:false, tr:[] };
 }
 function seed(){
   const R=REAGENT[L.reagent];
@@ -1387,6 +1506,14 @@ function seed(){
     const a=makeIon(KNO3.cat,'bgc',Math.random(),0); a.y=(Math.random()*2-1)*0.92; SIM.bg.push(a);
     const b=makeIon(KNO3.an ,'bga',Math.random(),0); b.y=(Math.random()*2-1)*0.92; SIM.bg.push(b);
   }
+  /* 전해질 이온 이동 관찰 — 종이 폭에 고르게 놓은 추적 이온 쌍에 기호를 붙여 움직임을 따라간다 */
+  for(let i=0;i<ELEC_TAG;i++){
+    const t=(i+.5)/ELEC_TAG, a=SIM.bg[i*2], b=SIM.bg[i*2+1];
+    a.tag=b.tag=true; a.ti=b.ti=i;
+    a.x=clamp(.08+t*.84+gauss()*.02,.03,.97);  a.y=(Math.random()*2-1)*0.55; a.d=.25+Math.random()*.5;
+    b.x=clamp(.92-t*.84+gauss()*.02,.03,.97);  b.y=(Math.random()*2-1)*0.55; b.d=.25+Math.random()*.5;
+  }
+  trAcc=0;
   SIM.x0={cat:meanX('cat'), an:meanX('an')};    /* 표본 편차를 기준점으로 흡수 — t=0 은 0.0 mm */
   stainClear();
 }
@@ -1408,6 +1535,14 @@ function stepSim(dt){
   for(let i=0;i<SIM.bg.length;i++)   move(SIM.bg[i]);
 }
 function meanX(role){ let s=0,n=0; for(const p of SIM.list) if(p.role===role){s+=p.x;n++;} return n?s/n:.5; }
+/* ---------- 추적 이온의 자취 — 모형 시간 6 s 마다 위치를 남겨 최근 5분 동안 지나온 길을 보여 준다 ---------- */
+const TR_N=50, TR_DT=6; let trAcc=0;
+function sampleTrails(dtSim){
+  trAcc+=dtSim; if(trAcc<TR_DT) return;
+  trAcc=0;
+  for(const p of SIM.bg){ if(!p.tag) continue; p.tr.push(p.x,p.y,p.d); if(p.tr.length>TR_N*3) p.tr.splice(0,3); }
+}
+function clearTrails(){ for(const p of SIM.bg) p.tr.length=0; trAcc=0; }
 function colDist(){                              /* 색을 띠는 이온이 움직인 거리 mm */
   const R=REAGENT[L.reagent];
   return R.colored==='cat' ? (SIM.x0.cat-meanX('cat'))*GAP*1000 : (meanX('an')-SIM.x0.an)*GAP*1000;
@@ -1439,7 +1574,16 @@ function paintStain(){
 
 /* ---------- 이온 구슬 스프라이트 ---------- */
 let SPR={};
-function ionSprite(col,size){
+/* 전하 부호 — 전하 보기를 켰을 때 구슬 속에 + 또는 − 를 새긴다.
+   작은 구슬에서도 읽히도록 부호 하나만 굵고 크게 (전하의 양은 범례·계기판의 이온식으로) */
+function chargeGlyph(g,cx,cy,h,w,z,col,alpha){
+  g.save(); g.globalAlpha=alpha; g.strokeStyle=col; g.lineWidth=w; g.lineCap='round';
+  g.beginPath(); g.moveTo(cx-h,cy); g.lineTo(cx+h,cy);
+  if(z>0){ g.moveTo(cx,cy-h); g.lineTo(cx,cy+h); }
+  g.stroke(); g.restore();
+}
+/* 색 있는 이온 — 실제 색으로 채운 구슬. q 면 이론 카드의 그림과 같이 속에 전하 부호를 흰색으로 새긴다 */
+function ionSprite(col,size,z,q){
   const c=document.createElement('canvas'); c.width=c.height=size;
   const g=c.getContext('2d'), r=size/2;
   const rg=g.createRadialGradient(r*0.66,r*0.62,r*0.08,r,r,r*0.98);
@@ -1450,6 +1594,11 @@ function ionSprite(col,size){
   g.beginPath(); g.arc(r,r,r*0.94,0,6.284); g.stroke();
   g.globalAlpha=.85; g.fillStyle='#fff';
   g.beginPath(); g.ellipse(r*0.66,r*0.56,r*0.20,r*0.13,-0.6,0,6.284); g.fill();
+  g.globalAlpha=1;
+  if(q){
+    chargeGlyph(g,r,r,r*0.46,r*0.36,z,shade(col,-58),.62);   /* 어두운 테두리를 먼저 깔아 밝은 면에서도 흰 부호가 뜬다 */
+    chargeGlyph(g,r,r,r*0.46,r*0.21,z,'#ffffff',.97);
+  }
   return c;
 }
 function paleSprite(size,dark){
@@ -1462,9 +1611,28 @@ function paleSprite(size,dark){
   g.beginPath(); g.arc(r,r,r*0.90,0,6.284); g.stroke();
   return c;
 }
+/* 무색 이온 — 속은 무색(유리구슬)이고 테두리에만 구분용 표시색을 둔다. q 면 속에 전하 부호를 새긴다 */
+function rimSprite(rim,size,z,q){
+  const c=document.createElement('canvas'); c.width=c.height=size;
+  const g=c.getContext('2d'), r=size/2;
+  const rg=g.createRadialGradient(r*0.66,r*0.6,r*0.06,r,r,r*0.98);
+  rg.addColorStop(0,'#ffffff'); rg.addColorStop(.5,'#F7FAFC'); rg.addColorStop(1,shade(rim,70));
+  g.fillStyle=rg; g.beginPath(); g.arc(r,r,r*0.90,0,6.284); g.fill();
+  g.strokeStyle=rim; g.lineWidth=size*0.11;
+  g.beginPath(); g.arc(r,r,r*0.84,0,6.284); g.stroke();
+  g.globalAlpha=.8; g.fillStyle='#fff';
+  g.beginPath(); g.ellipse(r*0.64,r*0.54,r*0.20,r*0.12,-0.6,0,6.284); g.fill();
+  g.globalAlpha=1;
+  if(q) chargeGlyph(g,r,r,r*0.42,r*0.2,z,shade(rim,-34),.95);
+  return c;
+}
+/* plain = 부호 없는 구슬 · charge = 전하 보기용 부호를 새긴 구슬. 매 프레임 그리지 않고 켜고 끌 때 갈아 끼운다 */
 function buildSprites(){
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  SPR={ cu:ionSprite('#3FA3D1',52), mn:ionSprite('#7B2D8E',52), pale:paleSprite(46,dark) };
+  const set=q=>({ cu:ionSprite('#3FA3D1',52,2,q), mn:ionSprite('#7B2D8E',52,-1,q),
+    rim:{ 'K⁺':rimSprite(TINT['K⁺'],52,1,q), 'NO₃⁻':rimSprite(TINT['NO₃⁻'],52,-1,q),
+          'SO₄²⁻':rimSprite(TINT['SO₄²⁻'],52,-2,q) } });
+  SPR={ pale:paleSprite(46,dark), plain:set(false), charge:set(true) };
 }
 
 /* ==========================================================================
@@ -1478,8 +1646,11 @@ const LAY={ region:{x0:0,x1:0,y0:0,y1:0},
             dish:{cx:0,cy:0,rx:0,bottom:0}, mode:'bench' };
 
 function layoutMode(){
-  const r=$('#stage').getBoundingClientRect();
-  return (r.width<820 || r.height<540) ? 'compact' : 'bench';
+  /* 레일을 왼쪽에 둔 bench 배치라면 작업대가 얼마나 될지로 정한다.
+     지금 배치의 무대를 재면 ① 820~898px 폭에서 bench↔compact 가 서로를 뒤집고
+     ② 퀴즈·탐구 탭에서는 무대가 display:none 이라 0×0 으로 읽혀 레일이 아래로 뛰어내린다 */
+  const a=$('#app').getBoundingClientRect(), rw=parseFloat(cssVar('--w-rail'))||78;
+  return (a.width-rw<820 || a.height<540) ? 'compact' : 'bench';
 }
 function syncLayout(){
   const app=$('#app'), m=layoutMode();
@@ -1494,6 +1665,10 @@ function syncLayout(){
     return {l:b.left-st.left,t:b.top-st.top,r:b.right-st.left,b:b.bottom-st.top,w:b.width,h:b.height}; };
   const psu=rc($('#psu')), gau=rc($('#gauge')), dct=rc($('#dishctl')), vsw=rc($('.viewsw'));
   const g=20;
+  /* 좁은 bench 폭에서는 접시 조작군이 계기 패널 밑까지 퍼질 수 있다 — 담아 둔 조건이 늘어도 계기 패널이
+     표시 전환 줄 위에서 멈추도록 높이를 묶고, 넘치는 조건 목록은 패널 안에서 스크롤한다 */
+  if(m==='bench' && dct.r > gau.l-8) $('#gauge').style.maxHeight=Math.max(240, rc($('.dishctl .segsel.tog')).t-12-8)+'px';
+  else $('#gauge').style.maxHeight='';
   if(m==='bench'){
     LAY.region={ x0:psu.r+g, x1:gau.l-g, y0:Math.max(vsw.b,12)+g, y1:dct.t-g };
   }else{
@@ -1517,8 +1692,10 @@ function resize(){
   dirty=true;
 }
 let roTimer=null;
-new ResizeObserver(()=>{ clearTimeout(roTimer); roTimer=setTimeout(()=>{ resize(); syncLayout(); syncLayout(); },40); })
-  .observe($('#stage'));
+const ro=new ResizeObserver(()=>{ clearTimeout(roTimer); roTimer=setTimeout(()=>{ resize(); syncLayout(); syncLayout(); },40); });
+/* 무대뿐 아니라 접시 자리를 정하는 패널들도 지켜본다 — 범례 줄이 늘거나 단계 안내가 길어져
+   접시 조작군·전원 장치가 자라면 접시 영역을 다시 잡아 종이가 글자 밑으로 파고들지 않게 한다 */
+[$('#app'),$('#stage'),$('#dishctl'),$('#psu'),$('#gauge')].forEach(el=>ro.observe(el));   /* #app — 실험 탭이 아닐 때의 창 크기 변화 */
 window.addEventListener('orientationchange',()=>setTimeout(()=>{resize();syncLayout();},240));
 
 /* ---------- 그리기 헬퍼 ---------- */
@@ -1642,51 +1819,137 @@ function whitePaper(g,x0,y0,x1,y1,w0,w1){
   g.fillStyle=grad(g,0,y0,0,y1,[[0,pf],[1,shade(pf,-16)]]); g.fill();
   g.strokeStyle='rgba(0,0,0,.10)'; g.lineWidth=1; g.stroke();
 }
+/* 전기력 표시 — 이온 층 사이(색 있는 이온 바로 아래)에 끼우는 주석 층.
+   양이온 줄(←)과 음이온 줄(→) 두 줄로만 그리고, 전해질 이온은 같은 방향 줄의 기호 뒤에 덧붙여 줄 수를 늘리지 않는다.
+   색 있는 이온의 줄이 가장 진하다. 기호는 이온이 떠나가는 쪽 끝(양이온은 (+)극, 음이온은 (−)극 쪽)에 두어
+   모여든 이온에 가려지지 않게 하고, 화살표는 흰 테두리를 깔아 색 띠 위에서도 읽히며 힘의 방향으로 흘러간다 */
 function fieldArrows(g,x0,x1,ys,ye,scale){
   if(!L.showField||!L.power) return;
-  const R=REAGENT[L.reagent], pale='#B9C7D3';
-  const rows=[{sp:R.cat, dir:-1, y:lerp(ys,ye,0.28)},    /* 양이온 → (−)극 */
-              {sp:R.an , dir: 1, y:lerp(ys,ye,0.72)}];   /* 음이온 → (+)극 */
-  const n=5, ph=REDUCED?0:(perfNow*0.0012)%1;
-  g.save(); g.lineCap='round'; g.textBaseline='middle'; g.textAlign='left';
+  const R=REAGENT[L.reagent], hero=R[R.colored], slate='#5F7789';   /* 여러 무색 이온이 함께 받는 힘은 청회색 */
+  const rows=[{sp:[R.cat], dir:-1, y:lerp(ys,ye,.28)},              /* 양이온 → (−)극 */
+              {sp:[R.an ], dir: 1, y:lerp(ys,ye,.72)}];             /* 음이온 → (+)극 */
+  if(L.showElec){                                        /* 전해질 이온도 같은 힘을 받는다 (같은 기호는 한 번만) */
+    if(R.cat.sym!==KNO3.cat.sym) rows[0].sp.push(KNO3.cat);
+    rows[1].sp.push(KNO3.an);
+  }
+  const fz=Math.min(14,10.5*scale), n=6, ph=REDUCED?0:(perfNow*0.0009)%1, m=8*scale+4;   /* m : 구리판에 가리지 않는 안쪽 여백 */
+  const halo='rgba(255,255,255,.90)', AL=11*scale, AH=4.2*scale, SEP=' · ';
+  g.save(); g.lineCap='round'; g.lineJoin='round'; g.textBaseline='middle'; g.textAlign='left';
+  g.font='700 '+fz.toFixed(1)+'px '+cssVar('--font-ui');
+  const sepW=g.measureText(SEP).width;
   rows.forEach(({sp,dir,y})=>{
-    const col=sp.color||pale;
-    g.font='700 '+(10.5*scale).toFixed(1)+'px '+cssVar('--font-ui');
-    const lw=g.measureText(sp.sym).width;
-    g.globalAlpha=.95; g.fillStyle=col; g.fillText(sp.sym, x0+8, y);
-    g.globalAlpha=.60; g.strokeStyle=col; g.lineWidth=1.7*scale;
+    const main=sp[0]===hero, k=main?1:.6;               /* 색 있는 이온의 줄이 주인공 · 나머지 줄은 한 단계 옅게 */
+    const col=main?hero.color:(sp.length>1?slate:sp[0].tint);
+    const ws=sp.map(s=>fxWidth(g,s.sym,fz,700));         /* 이온식은 첨자를 올려 그린 폭으로 잰다 */
+    g.font='700 '+fz.toFixed(1)+'px '+cssVar('--font-ui');
+    const lw=ws.reduce((a,b)=>a+b,0)+sepW*(sp.length-1);
+    const xa = dir<0 ? x0+m : x0+m+lw+10,  xb = dir<0 ? x1-m-lw-10 : x1-m;
+    let lx = dir<0 ? x1-m-lw : x0+m;
+    const hw=3.2*Math.max(.8,scale);
+    sp.forEach((s,i)=>{
+      if(i){                                             /* 기호 사이 가운뎃점 */
+        g.strokeStyle=halo; g.lineWidth=hw; g.globalAlpha=k; g.strokeText(SEP,lx,y);
+        g.fillStyle=slate; g.globalAlpha=.9*k; g.fillText(SEP,lx,y); lx+=sepW;
+      }
+      g.globalAlpha=k;     fxText(g,s.sym,lx,y,fz,700,{base:'middle',stroke:halo,lw:hw});
+      g.globalAlpha=.98*k; fxText(g,s.sym,lx,y,fz,700,{base:'middle',fill:s.color||s.tint||slate});
+      lx+=ws[i];
+    });
     for(let i=0;i<n;i++){
-      const t=(i+ph)/n, x=lerp(x0+18+lw, x1-12, t);
-      g.beginPath(); g.moveTo(x-9*dir*scale,y); g.lineTo(x+7*dir*scale,y); g.stroke();
-      g.beginPath(); g.moveTo(x+7*dir*scale,y);
-      g.lineTo(x+1*dir*scale,y-4*scale); g.lineTo(x+1*dir*scale,y+4*scale); g.closePath();
-      g.fillStyle=col; g.fill();
+      const t=(i+(dir<0?1-ph:ph))/n, x=lerp(xa,xb,t);
+      const fade=Math.min(1,Math.min(t,1-t)*6);          /* 양 끝에서 스르르 나타나고 사라진다 */
+      const tail=x-dir*AL*0.5, head=x+dir*AL*0.5;
+      const path=()=>{ g.beginPath(); g.moveTo(tail,y); g.lineTo(head,y);
+        g.moveTo(head-dir*AH,y-AH); g.lineTo(head,y); g.lineTo(head-dir*AH,y+AH); };
+      g.globalAlpha=.85*fade*k; g.strokeStyle=halo; g.lineWidth=4.4*scale; path(); g.stroke();
+      g.globalAlpha=.92*fade*k; g.strokeStyle=col; g.lineWidth=1.9*scale; path(); g.stroke();
     }
   });
   g.restore();
 }
-function drawIons(g,mapX,mapY,baseR,depthScale){
-  const R=REAGENT[L.reagent];
+/* 전기력 표시가 켜져 있으면 구리판 위에 전하 표시를 얹는다 — 힘의 근원이 판에 모인 전하임을 보여 준다 */
+function chargeMarks(g,x,y0,y1,w,sign,scale){
+  if(!L.showField||!L.power) return;
+  const r=Math.min(w*0.42,5.2*scale), col=sign<0?NEG_CLIP:POS_CLIP, cx=x+w/2;
+  const n=Math.max(3,Math.min(8,Math.floor((y1-y0)/(r*5.5))));
+  g.save(); g.lineCap='round';
+  for(let i=0;i<n;i++){
+    const y=lerp(y0,y1,(i+.5)/n);
+    g.globalAlpha=.96; g.fillStyle='#fff'; g.beginPath(); g.arc(cx,y,r,0,6.284); g.fill();
+    g.strokeStyle=col; g.lineWidth=Math.max(1.2,r*0.36);
+    g.beginPath(); g.moveTo(cx-r*.52,y); g.lineTo(cx+r*.52,y);
+    if(sign>0){ g.moveTo(cx,y-r*.52); g.lineTo(cx,y+r*.52); }
+    g.stroke();
+  }
+  g.restore();
+}
+/* 이온 층 — 아래부터 전해질 이온(질산 칼륨) → 무색 짝 이온 → 전기력 화살표(between) → 색 있는 이온.
+   색 띠를 만드는 Cu²⁺·MnO₄⁻ 이 언제나 맨 위에서 또렷하도록, 나머지 이온은 한 단계씩 작고 옅게 깐다 */
+function drawIons(g,mapX,mapY,baseR,depthScale,between){
+  const R=REAGENT[L.reagent], S=L.showCharge?SPR.charge:SPR.plain;
   const arr=SIM.list.slice().sort((a,b)=>a.y-b.y);
   const pulse=L.powerAnim>0?L.powerAnim:0;
-  for(const p of arr){
-    const isCol = p.role===R.colored;
-    if(!isCol && !L.showAll) continue;
-    const dep=0.82+(p.y+1)*0.5*0.36*depthScale, s=baseR*p.r*dep;
-    const spr=isCol?SPR[L.reagent]:SPR.pale;
-    let x=mapX(p), y=mapY(p);
-    if(pulse>0) x+=Math.sin(pulse*14+p.ph)*pulse*3.0;
-    g.globalAlpha = isCol? clamp(.55+dep*.5,0,1) : .62;
-    g.drawImage(spr,x-s,y-s,s*2,s*2);
+  const put=(p,spr,k,alpha)=>{
+    const dep=0.82+(p.y+1)*0.5*0.36*depthScale, s=baseR*p.r*dep*k;
+    let x=mapX(p); if(pulse>0) x+=Math.sin(pulse*14+p.ph)*pulse*3.0;
+    g.globalAlpha = alpha==null ? clamp(.55+dep*.5,0,1) : alpha;
+    g.drawImage(spr,x-s,mapY(p)-s,s*2,s*2);
+  };
+  if(L.showElec) drawElec(g,mapX,mapY,baseR,depthScale,S);
+  /* 무색 짝 이온 — 황산 구리(Ⅱ)는 SO₄²⁻, 과망가니즈산 칼륨은 K⁺. 색 있는 이온보다 한 단계 작고 옅게 */
+  if(L.showAll) for(const p of arr) if(p.role!==R.colored) put(p,S.rim[p.sym]||SPR.pale,.86,.6);
+  if(between) between();
+  for(const p of arr) if(p.role===R.colored) put(p,S[L.reagent],1,null);   /* 주인공 — 맨 위 */
+  g.globalAlpha=1;
+}
+/* 전해질(질산 칼륨) 이온 — 맨 아래 바탕 층. 추적 이온 몇 쌍에만 자취와 기호를 붙여 K⁺ 은 (−)극, NO₃⁻ 은 (+)극 쪽으로
+   가는 것을 보여 주고, 나머지는 자취 없이 작고 옅은 바탕 무늬로만 깐다 (색 있는 이온보다 앞에 나서지 않게) */
+const trQ={x:0,y:0,d:0};
+function drawElec(g,mapX,mapY,baseR,depthScale,S){
+  const fs=clamp(baseR*0.95,8,11.5), side=L.view==='side';   /* 측면은 띠가 얇아 작은 구슬을 더 작게 */
+  const depOf=p=>0.8+(p.y+1)*0.5*0.3*depthScale;
+  g.save(); g.lineCap='round'; g.lineJoin='round';
+  /* 1) 바탕 이온 — 자취 없이 작고 옅게 */
+  g.globalAlpha=side?.3:.36;
+  for(const p of SIM.bg){
+    if(p.tag) continue;
+    const s=baseR*(side?0.5:0.6)*depOf(p);
+    g.drawImage(S.rim[p.sym],mapX(p)-s,mapY(p)-s,s*2,s*2);
   }
-  if(L.showAll){
-    g.globalAlpha=.34;
-    for(const p of SIM.bg){
-      const dep=0.8+(p.y+1)*0.5*0.3*depthScale, s=baseR*0.56*dep;
-      g.drawImage(SPR.pale,mapX(p)-s,mapY(p)-s,s*2,s*2);
+  /* 2) 추적 이온의 자취 — 꼬리로 갈수록 가늘고 흐려지는 혜성 꼬리 */
+  const wBase=Math.max(.75,baseR/8.5);
+  if(!REDUCED) for(const p of SIM.bg){
+    const n=p.tr.length/3;
+    if(!p.tag||n<2) continue;
+    const at=i=>{ trQ.x=p.tr[i*3]; trQ.y=p.tr[i*3+1]; trQ.d=p.tr[i*3+2]; return [mapX(trQ),mapY(trQ)]; };
+    g.strokeStyle=p.tint;
+    let [px,py]=at(0);
+    for(let i=1;i<=n;i++){
+      const [X,Y]= i<n ? at(i) : [mapX(p),mapY(p)], k=i/n;
+      g.globalAlpha=.8*Math.pow(k,1.4); g.lineWidth=(0.6+2.2*k)*wBase;
+      g.beginPath(); g.moveTo(px,py); g.lineTo(X,Y); g.stroke();
+      px=X; py=Y;
     }
   }
-  g.globalAlpha=1;
+  /* 3) 추적 이온 구슬 */
+  g.globalAlpha=.9;
+  for(const p of SIM.bg){
+    if(!p.tag) continue;
+    const s=baseR*0.9*depOf(p);
+    g.drawImage(S.rim[p.sym],mapX(p)-s,mapY(p)-s,s*2,s*2);
+  }
+  /* 4) 추적 이온의 기호 — 흰 테두리 글자로 종이 위에서도 읽힌다. 측면에서는 위·아래로 번갈아 붙여 겹침을 줄인다 */
+  const lw=Math.max(2.5,fs*0.28), halo='rgba(255,255,255,.92)';
+  g.globalAlpha=.92;
+  trQ.x=0; trQ.y=0; trQ.d=.5; const xl=mapX(trQ)+9; trQ.x=1; const xr=mapX(trQ)-9;   /* 구리판 안쪽 */
+  for(const p of SIM.bg){
+    if(!p.tag) continue;
+    const s=baseR*0.9*depOf(p), hw=fxWidth(g,p.sym,fs,700)/2, below=side&&(p.ti%2===1);
+    const X=clamp(mapX(p),xl+hw,xr-hw);                  /* 극판에 닿은 이온의 기호도 판에 가리지 않게 */
+    const Y=below? mapY(p)+s+1 : mapY(p)-s-1.5;
+    fxText(g,p.sym,X,Y,fs,700,{align:'center',base:below?'top':'bottom',stroke:halo,lw:lw,fill:shade(p.tint,-30)});
+  }
+  g.restore();
 }
 /* 집게에 물린 전선은 작업대 바깥으로 벌어져 화면 아래로 빠진다.
    전원 장치는 화면 밖에 있는 것으로 두어, 선이 접시나 집게를 가로지르지 않는다 */
@@ -1758,10 +2021,12 @@ function drawSide(){
   ctx.save(); ctx.globalAlpha=.28; ctx.strokeStyle='#5E7789'; ctx.lineWidth=2.4;
   ctx.beginPath(); ctx.ellipse(cx,liqB,rxi,ryi*0.88,0,0,Math.PI); ctx.stroke(); ctx.restore();
 
-  fieldArrows(ctx,cx-ex,cx+ex,liqT+7,liqB-5,sc*1.1);
-  drawIons(ctx,p=>cx-ex+p.x*ex*2,p=>lerp(liqT+6,liqB-5,p.d),5.8*sc*1.35,1);
+  drawIons(ctx,p=>cx-ex+p.x*ex*2,p=>lerp(liqT+6,liqB-5,p.d),5.8*sc*1.35,1,
+           ()=>fieldArrows(ctx,cx-ex,cx+ex,liqT+7,liqB-5,sc*1.1));
   copperPlate(ctx,cx-ex-pw/2,ty-ry*0.55,pw,liqB-ty+ry*0.55,true);
+  chargeMarks(ctx,cx-ex-pw/2,liqT+5,liqB-4,pw,-1,sc);
   copperPlate(ctx,cx+ex-pw/2,ty-ry*0.55,pw,liqB-ty+ry*0.55,true);
+  chargeMarks(ctx,cx+ex-pw/2,liqT+5,liqB-4,pw, 1,sc);
   ctx.restore();
 
   /* 유리 앞벽 */
@@ -1845,12 +2110,13 @@ function drawTop(){
   ctx.strokeStyle='rgba(120,145,162,.42)'; ctx.lineWidth=1.1;
   rr(ctx,cx-paW/2,cy-paH/2,paW,paH,R*0.07); ctx.stroke();
 
-  fieldArrows(ctx,cx-ex,cx+ex,cy-paH*0.30,cy+paH*0.30,sc*1.4);
-  drawIons(ctx,p=>cx-ex+p.x*ex*2,p=>cy+p.y*paH*0.44,7.0*sc*1.5,.5);
+  drawIons(ctx,p=>cx-ex+p.x*ex*2,p=>cy+p.y*paH*0.44,7.0*sc*1.5,.5,
+           ()=>fieldArrows(ctx,cx-ex,cx+ex,cy-paH*0.30,cy+paH*0.30,sc*1.4));
   [[-1],[1]].forEach(([s])=>{
     const px=cx+s*ex-pw/2;
     softShadow(ctx,()=>{ rr(ctx,px,cy-ph/2,pw,ph,pw*0.3); ctx.fill(); },4,LIGHT.dx*5,LIGHT.dy*5,.28);
     copperPlate(ctx,px,cy-ph/2,pw,ph,true);
+    chargeMarks(ctx,px,cy-ph/2+pw*0.9,cy+ph/2-pw*0.9,pw,s,sc);
   });
   ctx.restore();
 
@@ -1890,6 +2156,7 @@ function loop(ts){
     const dtSim=dtReal*L.speed;
     L.t+=dtSim; L.watch+=dtReal;
     stepSim(dtSim); paintStain(); dirty=true;
+    if(L.showElec) sampleTrails(dtSim);
     acc+=dtReal; if(acc>0.12){ acc=0; updGauge(); }
   }
   if(L.wireAnim>0){ L.wireAnim=Math.max(0,L.wireAnim-dtReal*2.1); dirty=true; }
@@ -1908,9 +2175,11 @@ function updGauge(){
   $('#hIonKa').textContent=R.cat.sym; $('#hIonKb').textContent=R.an.sym;
   $('#hIonA').innerHTML=dCat.toFixed(1)+'<em>mm</em>';
   $('#hIonB').innerHTML=dAn.toFixed(1)+'<em>mm</em>';
-  const pale='#B9C7D3';
-  $('#hDotA').style.background=R.cat.color||pale;
-  $('#hDotB').style.background=R.an.color||pale;
+  const dot=(el,sp)=>{                                   /* 무색 이온은 범례와 같은 테두리색 고리 */
+    el.style.background = sp.color||'#F7FAFC';
+    el.style.boxShadow  = sp.color ? '' : 'inset 0 0 0 2.5px '+sp.tint;
+  };
+  dot($('#hDotA'),R.cat); dot($('#hDotB'),R.an);
   const amp=L.power ? (L.volt/R_CELL)*(1+(Math.random()-.5)*0.006) : 0;
   $('#segV').textContent=(L.power?L.volt:0).toFixed(1).padStart(4,'0');
   $('#segA').textContent=amp.toFixed(3);
@@ -1931,17 +2200,25 @@ function updGauge(){
 function describe(){
   const R=REAGENT[L.reagent], c=R[R.colored], d=colDist();
   const dir=R.colored==='cat'?'(−)극':'(+)극';
-  live(R.short+' 수용액, 전압 '+L.volt.toFixed(1)+'볼트, '+(L.power?'전원 켜짐':'전원 꺼짐')
-    +'. 경과 '+fmtT(L.t)+'. 색을 띠는 '+c.sym+'이 '+dir+' 쪽으로 '+Math.abs(d).toFixed(1)+'밀리미터 이동했습니다.'
+  live(R.short+' 수용액, 전압 '+L.volt.toFixed(1)+'볼트, '+(L.power?'전원 켜짐':'전원 꺼짐')   /* 화면 낭독기는 첨자 기호 대신 이름으로 읽는다 */
+    +'. 경과 '+fmtT(L.t)+'. 색을 띠는 '+c.name+'이 '+dir+' 쪽으로 '+Math.abs(d).toFixed(1)+'밀리미터 이동했습니다.'
     +(L.view==='side'?' 측면에서 보는 중.':' 위에서 보는 중.'));
 }
 function updLegend(){
   const R=REAGENT[L.reagent], c=R[R.colored], o=R[R.colored==='cat'?'an':'cat'];
   const dir=R.colored==='cat'?'(−)극 쪽':'(+)극 쪽';
+  const q=sp=>L.showCharge?' class="q'+(sp.z>0?' qp':'')+'"':'';   /* 전하 보기 — 견본 구슬에도 캔버스와 같은 부호 */
+  const dot=sp=>'<i'+q(sp)+' style="background:'+sp.color+';color:#fff"></i>';
+  const ring=sp=>'<i'+q(sp)+' style="background:#F7FAFC;box-shadow:inset 0 0 0 2.5px '+sp.tint+';color:'+shade(sp.tint,-34)+'"></i>';
+  const odir=o.z>0?'(−)극 쪽':'(+)극 쪽';
   $('#legend').innerHTML=
-    '<span><i style="background:'+c.color+'"></i>'+c.sym+' <b class="ln">'+c.name+'</b><em>색 있음 · '+dir+'</em></span>'+
-    '<span><i style="background:#B9C7D3"></i>'+o.sym+' <b class="ln">'+o.name+'</b><em>무색 · 반대쪽</em></span>'+
-    '<span><i style="background:#D9E3EA"></i>K⁺ · NO₃⁻<b class="ln"> 질산 칼륨</b><em>전류가 흐르는 길</em></span>';
+    '<span>'+dot(c)+c.sym+' <b class="ln">'+c.name+'</b><em>색 있음 · '+dir+'</em></span>'+
+    '<span>'+ring(o)+o.sym+' <b class="ln">'+o.name+'</b><em>무색 · '+odir+'</em></span>'+
+    (L.showElec                                  /* 질산 칼륨 이온이 화면에 있을 때만 종류별로 — K⁺ 가 이미 위에 있으면 한 번만 */
+      ? (o.sym===KNO3.cat.sym ? '' :
+         '<span>'+ring(KNO3.cat)+KNO3.cat.sym+' <b class="ln">'+KNO3.cat.name+'</b><em>무색 · (−)극 쪽</em></span>')+
+        '<span>'+ring(KNO3.an)+KNO3.an.sym+' <b class="ln">'+KNO3.an.name+'</b><em>무색 · (+)극 쪽</em></span>'
+      : '<span><i style="background:#D9E3EA"></i>K⁺ · NO₃⁻<b class="ln"> 질산 칼륨</b><em>전류가 흐르는 길</em></span>');
 }
 
 /* ==========================================================================
@@ -2167,7 +2444,27 @@ $('#vSide').onclick=()=>setView('side');
 $('#vTop').onclick=()=>setView('top');
 $('#btnShowAll').onclick=function(){
   L.showAll=!L.showAll; this.setAttribute('aria-pressed',String(L.showAll)); Snd.click(); dirty=true;
-  toast(L.showAll?'무색 이온까지 입자 모형으로 보여요':'실제로 보이는 색 있는 이온만 보여요');
+  updLegend();
+  const R=REAGENT[L.reagent], o=R[R.colored==='cat'?'an':'cat'];   /* 짝 이온 — 황산 구리(Ⅱ)는 SO₄²⁻, 과망가니즈산 칼륨은 K⁺ */
+  toast(L.showAll?'색이 없어 보이지 않던 '+o.sym+'('+o.name+')을 모형으로 보여요. 테두리 색은 구분하려는 표시예요'
+                 :'실제로 보이는 색 있는 이온만 보여요', 3600);
+};
+$('#btnCharge').onclick=function(){
+  L.showCharge=!L.showCharge; this.setAttribute('aria-pressed',String(L.showCharge)); Snd.click(); dirty=true;
+  updLegend();
+  const R=REAGENT[L.reagent], c=R[R.colored], o=R[R.colored==='cat'?'an':'cat'], sg=sp=>sp.z>0?'(+)':'(−)';
+  toast(!L.showCharge ? '전하 표시를 껐어요'
+        : !L.showAll ? c.sym+'이 띤 '+sg(c)+'전하를 표시했어요. 무색 이온 보기를 켜면 '+sg(o)+'전하를 띤 '+o.sym+'도 함께 보여요'
+        : L.power    ? '(+)전하를 띤 양이온은 (−)극 쪽으로, (−)전하를 띤 음이온은 (+)극 쪽으로 움직여요'
+                     : '이온마다 띤 전하를 표시했어요. 전원을 켜면 전하의 종류에 따라 움직이는 방향이 갈려요', 3600);
+};
+$('#btnElec').onclick=function(){
+  L.showElec=!L.showElec; this.setAttribute('aria-pressed',String(L.showElec)); Snd.click();
+  if(!L.showElec) clearTrails();
+  updLegend(); dirty=true;
+  toast(!L.showElec ? '전해질 이온 표시를 껐어요'
+        : (L.power ? '질산 칼륨의 K⁺은 (−)극, NO₃⁻은 (+)극 쪽으로 움직여요. 테두리 색은 구분용 표시예요'
+                   : '전해질 이온을 표시했어요. 전원을 켜면 K⁺은 (−)극, NO₃⁻은 (+)극 쪽으로 움직입니다'), 3600);
 };
 $('#btnField').onclick=function(){
   L.showField=!L.showField; this.setAttribute('aria-pressed',String(L.showField)); Snd.click(); dirty=true;
@@ -2253,9 +2550,9 @@ const SVGT={
     <text x="205" y="20" font-size="10.5" font-weight="600" fill="{CU}">푸른색 · 양이온</text>
     <path d="M232 42h44" stroke="{FG3}" stroke-width="1.5" stroke-dasharray="3 3"/>
     <text x="330" y="46" font-size="11" font-weight="600" fill="{FG}">(−)극으로</text>
-    <circle cx="205" cy="103" r="19" fill="none" stroke="{LINE2}" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <circle cx="205" cy="103" r="19" fill="none" stroke="{SO4}" stroke-width="2" stroke-dasharray="4 3"/>
     <text x="205" y="107" font-size="10" font-weight="700" fill="{FG2}">SO₄²⁻</text>
-    <text x="205" y="132" font-size="10.5" fill="{FG3}">무색 · 음이온</text>
+    <text x="205" y="132" font-size="10" fill="{FG3}">무색 · 음이온 (분홍 테두리는 구분용 표시)</text>
     <path d="M232 103h44" stroke="{FG3}" stroke-width="1.5" stroke-dasharray="3 3"/>
     <text x="330" y="107" font-size="11" font-weight="600" fill="{FG2}">(+)극으로</text>
   </g>
@@ -2266,9 +2563,9 @@ const SVGT={
     <text x="66" y="63" font-size="14" font-weight="700" fill="{FG}">KMnO₄</text>
     <text x="66" y="79" font-size="10" fill="{FG2}">과망가니즈산 칼륨</text>
     <path d="M128 65h32" stroke="{LINE2}" stroke-width="1.6" marker-end="url(#ak)"/>
-    <circle cx="205" cy="42" r="19" fill="none" stroke="{LINE2}" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <circle cx="205" cy="42" r="19" fill="none" stroke="{KP}" stroke-width="2" stroke-dasharray="4 3"/>
     <text x="205" y="47" font-size="11" font-weight="700" fill="{FG2}">K⁺</text>
-    <text x="205" y="20" font-size="10.5" fill="{FG3}">무색 · 양이온</text>
+    <text x="205" y="20" font-size="10" fill="{FG3}">무색 · 양이온 (주황 테두리는 구분용 표시)</text>
     <path d="M232 42h44" stroke="{FG3}" stroke-width="1.5" stroke-dasharray="3 3"/>
     <text x="330" y="46" font-size="11" font-weight="600" fill="{FG2}">(−)극으로</text>
     <circle cx="205" cy="103" r="19" fill="{MN}"/><text x="205" y="107" font-size="9.5" font-weight="700" fill="#fff">MnO₄⁻</text>
@@ -2283,12 +2580,12 @@ const SVGT={
   <rect x="358" y="34" width="12" height="76" rx="2.5" fill="{POS}"/>
   <g font-family="{FONT}" font-size="10.5" fill="{FG3}" text-anchor="middle">
     <text x="36" y="26" font-weight="700" fill="{FG2}">(−)극</text><text x="364" y="26" font-weight="700" fill="{POS}">(+)극</text>
-    <circle cx="110" cy="62" r="7" fill="none" stroke="{LINE2}" stroke-width="1.3"/><text x="110" y="66" font-size="8">K⁺</text>
-    <circle cx="180" cy="84" r="8" fill="none" stroke="{LINE2}" stroke-width="1.3"/><text x="180" y="88" font-size="7.5">NO₃⁻</text>
-    <circle cx="250" cy="62" r="7" fill="none" stroke="{LINE2}" stroke-width="1.3"/><text x="250" y="66" font-size="8">K⁺</text>
-    <circle cx="316" cy="84" r="8" fill="none" stroke="{LINE2}" stroke-width="1.3"/><text x="316" y="88" font-size="7.5">NO₃⁻</text>
-    <text x="200" y="128" font-size="11" fill="{FG2}">질산 칼륨 수용액을 적신 거름종이 — 이온이 지나다니는 길</text>
-    <path d="M50 118h300" stroke="{ACC}" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <circle cx="110" cy="62" r="7" fill="none" stroke="{KP}" stroke-width="1.6"/><text x="110" y="66" font-size="8">K⁺</text>
+    <circle cx="180" cy="84" r="10" fill="none" stroke="{NO3}" stroke-width="1.6"/><text x="180" y="87" font-size="7.5">NO₃⁻</text>
+    <circle cx="250" cy="62" r="7" fill="none" stroke="{KP}" stroke-width="1.6"/><text x="250" y="66" font-size="8">K⁺</text>
+    <circle cx="316" cy="84" r="10" fill="none" stroke="{NO3}" stroke-width="1.6"/><text x="316" y="87" font-size="7.5">NO₃⁻</text>
+    <text x="200" y="134" font-size="11" fill="{FG2}">질산 칼륨 수용액을 적신 거름종이 — 이온이 지나다니는 길</text>
+    <path d="M50 116h300" stroke="{ACC}" stroke-width="1.4" stroke-dasharray="5 4"/>
   </g>
   <circle cx="200" cy="62" r="13" fill="{CU}"/><text x="200" y="67" font-size="9.5" font-weight="700" fill="#fff" text-anchor="middle" font-family="{FONT}">Cu²⁺</text>
   </svg>`,
@@ -2331,8 +2628,8 @@ const SVGT={
 const THEORY=[
  {k:'atom', t:'이온은 전하를 띤 입자', def:'원자가 전자를 잃거나 얻어 (+)나 (−)전하를 띠게 된 입자를 이온이라고 해요.',
   li:['원자는 (+)전하를 띤 양성자 수와 (−)전하를 띤 전자 수가 같아 전기적으로 중성이에요.',
-      '전자를 잃으면 (+)전하가 남아 <b>양이온</b>, 전자를 얻으면 (−)전하가 많아져 <b>음이온</b>이 됩니다.',
-      '이온의 이름과 기호에는 잃거나 얻은 전자 수가 함께 표시돼요. 예) Cu²⁺, SO₄²⁻'],
+      '전자를 잃으면 양성자 수가 전자 수보다 많아져 <b>양이온</b>, 전자를 얻으면 전자 수가 더 많아져 <b>음이온</b>이 됩니다.',
+      '이온식은 원소 기호의 오른쪽 위에 전하를 적어요. 구리 원자가 전자 2개를 잃으면 Cu²⁺, 염소 원자가 전자 1개를 얻으면 Cl⁻로 써요.'],
   link:'이 실험에서 <b>색이 한쪽으로 번지는 것</b>이 바로 그 입자가 전하를 띠고 있다는 증거예요.'},
 
  {k:'force', t:'전기력이 이온을 끌어당긴다', def:'다른 종류의 전하는 서로 끌어당기고, 같은 종류의 전하는 서로 밀어냅니다.',
@@ -2342,23 +2639,24 @@ const THEORY=[
   link:'전원 장치의 <b>전압</b> 슬라이더를 5 V와 20 V로 바꿔 보면 색이 번지는 빠르기가 달라지는 것을 볼 수 있어요.',
   more:'전기장의 세기 E는 전압을 전극 사이 거리로 나눈 값이에요. 이 실험에서 전극 사이가 7 cm이므로 15 V일 때 E는 약 214 V/m입니다.'},
 
- {k:'cuso4', t:'황산 구리(Ⅱ) 수용액 속 이온', def:'CuSO₄는 물에 녹아 푸른색 구리 이온과 무색 황산 이온으로 나뉩니다.',
+ {k:'cuso4', t:'황산 구리(Ⅱ) 수용액 속 이온', def:'황산 구리(Ⅱ)는 물에 녹아 푸른색 구리 이온과 무색 황산 이온으로 나뉩니다.',
   li:['<b>Cu²⁺(구리 이온)</b>이 수용액의 <b>푸른색</b>을 내는 입자예요.',
       'Cu²⁺은 양이온이므로 <b>(−)극</b> 쪽으로 이동합니다.',
       'SO₄²⁻은 색이 없어 눈에 보이지 않지만 반대쪽인 (+)극으로 이동해요.'],
   link:'접시 아래 <b>무색 이온 보기</b>를 켜면 보이지 않던 SO₄²⁻이 반대 방향으로 가는 것을 모형으로 볼 수 있어요.'},
 
- {k:'kmno4', t:'과망가니즈산 칼륨 수용액 속 이온', def:'KMnO₄는 물에 녹아 무색 칼륨 이온과 보라색 과망가니즈산 이온으로 나뉩니다.',
+ {k:'kmno4', t:'과망가니즈산 칼륨 수용액 속 이온', def:'과망가니즈산 칼륨은 물에 녹아 무색 칼륨 이온과 보라색 과망가니즈산 이온으로 나뉩니다.',
   li:['<b>MnO₄⁻(과망가니즈산 이온)</b>이 <b>보라색</b>을 내는 입자예요.',
       'MnO₄⁻은 음이온이므로 <b>(+)극</b> 쪽으로 이동합니다.',
       'K⁺은 색이 없고 (−)극 쪽으로 이동해요.'],
-  link:'황산 구리(Ⅱ) 수용액과 <b>색이 번지는 방향이 반대</b>인 것이 두 색소 입자의 전하가 반대라는 증거예요.'},
+  link:'황산 구리(Ⅱ) 수용액과 <b>색이 번지는 방향이 반대</b>인 것이 색을 띠는 두 이온의 전하가 반대라는 증거예요.'},
 
- {k:'kno3', t:'질산 칼륨 수용액은 왜 필요할까', def:'질산 칼륨 수용액은 전류가 흐를 수 있는 길을 만들어 주는 전해질이에요.',
+ {k:'kno3', t:'질산 칼륨 수용액은 왜 필요할까', def:'질산 칼륨은 물에 녹아 이온으로 나뉘는 전해질이라, 그 수용액이 거름종이에 전류가 흐르는 길을 만들어 줘요.',
   li:['마른 거름종이에는 이온이 지나갈 길이 없어요. 전해질 수용액으로 적셔야 <b>이온이 옮겨 다닐 수 있는 젖은 길</b>이 생깁니다.',
-      'KNO₃가 내놓는 K⁺과 NO₃⁻이 전하를 날라 전류가 흐르고, 전극 사이에 전기장이 고르게 걸려요.',
+      '질산 칼륨이 물에 녹아 생긴 K⁺과 NO₃⁻이 전하를 날라 전류가 흐르고, 전극 사이에 전기장이 고르게 걸려요.',
       'K⁺과 NO₃⁻은 <b>색이 없어</b> 관찰을 방해하지 않습니다.'],
-  link:'전원 장치 계기창의 <b>AMPS</b> 값이 0이 아닌 것이 이온이 전하를 나르고 있다는 증거예요.'},
+  link:'접시 아래 <b>전해질 이온 이동 관찰</b>을 켜면 K⁺이 (−)극, NO₃⁻이 (+)극 쪽으로 움직이며 전하를 나르는 모습을 볼 수 있어요. '
+      +'전원 장치 계기창의 <b>AMPS</b> 값이 0이 아닌 것도 이온이 전하를 나르고 있다는 증거예요.'},
 
  {k:'speed', t:'이온은 아주 천천히 움직인다', def:'이온의 이동 속도는 이온마다 정해진 이동도에 전기장을 곱한 값이에요.',
   li:['15 V에서 Cu²⁺은 1분에 약 0.7 mm, MnO₄⁻은 약 0.8 mm 움직여요.',
@@ -2370,7 +2668,7 @@ const THEORY=[
  {k:'wrap', t:'정리 — 이온은 전하를 띠고 있다', def:'색을 띠는 이온이 한쪽 극으로 이동하는 것에서 이온이 전하를 띠고 있음을 알 수 있어요.',
   li:['이온이 들어 있는 수용액에 전류를 흐르게 하면 이온이 이동합니다.',
       '<b>양이온은 (−)극 쪽으로</b>, <b>음이온은 (+)극 쪽으로</b> 이동해요.',
-      '색이 없는 이온도 똑같이 이동하지만 눈에 보이지 않을 뿐이에요.'],
+      '색이 없는 이온도 전하의 종류에 따라 같은 규칙으로 이동하지만, 눈에 보이지 않을 뿐이에요.'],
   link:'두 수용액을 모두 실험한 뒤 계기판의 <b>이 조건 담기</b>로 담아 두면 <b>색이 서로 반대 방향</b>으로 번진 것을 나란히 확인할 수 있어요.'}
 ];
 let tcIdx=Dev.get('tcIdx',0);
@@ -2381,6 +2679,7 @@ function paintTheory(){
     LINE:cssVar('--line-1'), LINE2:cssVar('--line-2'),
     PANEL:cssVar('--surface-1'), PANEL2:cssVar('--surface-2'),
     CU:cssVar('--ion-cu-txt'), MN:cssVar('--ion-mn-txt'),
+    SO4:TINT['SO₄²⁻'], KP:TINT['K⁺'], NO3:TINT['NO₃⁻'],
     ACC:cssVar('--accent-strong'), POS:'#C0392B'
   };
   const svg=k=>SVGT[k].replace(/\{(\w+)\}/g,(m,n)=>map[n]||m);
@@ -2433,7 +2732,7 @@ const QUIZ=[
   a:1, why:'보라색을 내는 입자는 MnO₄⁻(과망가니즈산 이온)입니다. K⁺은 색이 없어요. 그래서 보라색은 (+)극 쪽으로 번집니다.'},
  {type:'blank', q:'원자가 전자를 ⬚⬚⬚ 양이온이 되고, 전자를 얻으면 음이온이 된다.',
   ph:'예: 얻으면', a:['잃으면','잃어서','잃고','잃을때','잃을 때'],
-  why:'원자는 (+)전하와 (−)전하의 양이 같아 중성입니다. 전자를 잃으면 (+)전하가 남아 양이온이 돼요.'},
+  why:'원자는 양성자 수와 전자 수가 같아 전기적으로 중성이에요. 전자를 잃으면 양성자 수가 전자 수보다 많아져 (+)전하를 띠는 양이온이 돼요.'},
  {type:'order', q:'실험 과정을 순서대로 배열해 보세요.',
   opts:['페트리 접시에 거름종이를 깔고 질산 칼륨 수용액으로 충분히 적신다',
         '거름종이 양 끝에 구리 금속판을 놓고, 전압을 0 V로 내린 전원 장치에 집게 달린 전선으로 연결한다',
@@ -2442,7 +2741,7 @@ const QUIZ=[
   show:[2,0,3,1],
   a:[0,1,2,3],
   why:'질산 칼륨 수용액이 먼저 전류가 흐르는 길을 만들어야 합니다. 전선은 전압을 0 V로 내린 상태에서 연결하고, '
-     +'색소를 떨어뜨린 자리를 출발점으로 삼은 뒤 전압을 올려야 어느 쪽으로 번지는지 알 수 있어요.'}
+     +'수용액을 떨어뜨린 자리를 출발점으로 삼은 뒤 전압을 올려야 어느 쪽으로 번지는지 알 수 있어요.'}
 ];
 /* 오답 학습지용 재구성 문항 — 골랐던 문제도 직접 써 보게 바꾼다 (§10.2) */
 QUIZ[0].wq='황산 구리(Ⅱ) 수용액을 거름종이 가운데에 떨어뜨리고 전류를 흘렸습니다. 푸른색이 번지는 쪽을 쓰고, 색을 띠는 입자가 무엇인지와 함께 그 까닭을 설명하시오.';
@@ -2546,18 +2845,18 @@ const ESSAY=[
  {q:'황산 구리(Ⅱ) 수용액을 떨어뜨리고 전류를 흘렸을 때 푸른색이 (−)극 쪽으로 번진 까닭을 설명하시오.',
   hint:'계기판에서 <b>Cu²⁺</b> 줄의 이동 거리가 늘어나는 동안 접시의 색 띠가 어느 극 쪽으로 가는지 지켜보세요. '
       +'이어서 접시 아래 <b>무색 이온 보기</b>를 켜면 눈에 보이지 않던 SO₄²⁻이 어느 쪽으로 가는지도 함께 볼 수 있어요.',
-  model:'황산 구리(Ⅱ)는 물에 녹아 Cu²⁺과 SO₄²⁻으로 나뉘는데, 이 가운데 푸른색을 띠는 입자는 <mark>구리 이온(Cu²⁺)</mark>이다. '
-       +'Cu²⁺은 구리 원자가 전자 2개를 잃어 만들어진 <mark>(+)전하를 띤 양이온</mark>이다. '
-       +'서로 다른 종류의 전하 사이에는 <mark>끌어당기는 전기력</mark>이 작용하므로, '
-       +'Cu²⁺은 (−)전하가 모여 있는 <mark>(−)극 쪽으로 끌려간다</mark>. 그래서 푸른색이 (−)극 쪽으로 번진다.'},
+  model:'푸른색을 띠는 <mark>구리 이온(Cu²⁺)이 (+)전하를 띤 양이온</mark>이어서 <mark>(−)극 쪽으로 끌려가기</mark> 때문이다. '
+       +'황산 구리(Ⅱ)는 물에 녹아 Cu²⁺과 SO₄²⁻으로 나뉘는데, 이 가운데 푸른색을 띠는 것은 Cu²⁺이다. '
+       +'Cu²⁺은 구리 원자보다 전자가 2개 적어 (+)전하를 띤다. 서로 다른 종류의 전하 사이에는 <mark>끌어당기는 전기력</mark>이 작용하므로, '
+       +'Cu²⁺은 (−)전하가 모여 있는 (−)극 쪽으로 이동하고 그래서 푸른색이 (−)극 쪽으로 번진다.'},
  {q:'이 실험 결과가 "이온은 전하를 띠고 있다"는 것의 증거가 되는 까닭을 설명하시오.',
-  hint:'전원을 끈 채로 두었을 때와 켰을 때 색 띠의 모양이 어떻게 다른지 비교해 보세요. '
+  hint:'전원을 켜기 전 수용액을 막 떨어뜨렸을 때와 전원을 켠 뒤에 색 띠의 모양이 어떻게 달라지는지 비교해 보세요. '
       +'두 수용액을 각각 계기판의 <b>이 조건 담기</b>로 담은 뒤 <b>나란히 비교</b>를 누르면 번진 방향을 견줄 수 있어요.',
-  model:'전류를 흘리지 않으면 색은 사방으로 고르게 조금씩 퍼질 뿐 <mark>한쪽으로 치우치지 않는다</mark>. '
-       +'그러나 전류를 흘리면 색을 띠는 부분이 <mark>정해진 한쪽 극으로만</mark> 이동한다. '
-       +'게다가 그 방향이 수용액마다 달라서, 푸른색(Cu²⁺)은 (−)극으로, 보라색(MnO₄⁻)은 (+)극으로 갔다. '
-       +'전기력은 <mark>전하를 띤 입자에만</mark> 작용하고 전하의 종류에 따라 방향이 정해지므로, '
-       +'이 결과는 <mark>이온이 전하를 띠고 있다는 증거</mark>가 된다.'}
+  model:'전류를 흘리면 색을 띠는 이온이 <mark>정해진 한쪽 극으로만</mark> 이동하는데, '
+       +'전기력은 <mark>전하를 띤 입자에만</mark> 작용하고 전하의 종류에 따라 방향이 정해지기 때문이다. '
+       +'전류를 흘리지 않으면 색은 사방으로 고르게 조금씩 퍼질 뿐 <mark>한쪽으로 치우치지 않는다</mark>. '
+       +'또 푸른색(Cu²⁺)은 (−)극으로, 보라색(MnO₄⁻)은 (+)극으로 서로 반대 방향으로 이동했다. '
+       +'따라서 이 결과는 <mark>이온이 전하를 띠고 있다는 증거</mark>가 된다.'}
 ];
 let ES=Learn.get('essay',{}), RV=Learn.get('revise',{}), LK=Learn.get('locks',{}), HN=Learn.get('hints',{});
 const esA=i=>ES[i]||'';
@@ -2872,9 +3171,8 @@ $('#btnPng').onclick=()=>needId(()=>{
   g.textBaseline='middle'; g.textAlign='left';
   g.fillStyle=cssVar('--text-1'); g.font='600 15px '+cssVar('--font-ui');
   g.fillText('학번 '+ID.sid+'   이름 '+ID.name+'   '+today(), 18, hh+22);
-  g.fillStyle=cssVar('--text-2'); g.font='500 13px '+cssVar('--font-ui');
-  g.fillText(R.label+' · '+L.volt.toFixed(1)+' V · '+fmtT(L.t)+' 경과 · '
-    +R[R.colored].sym+' '+Math.abs(d).toFixed(1)+' mm 이동', 18, hh+44);
+  fxText(g,R.label+' · '+L.volt.toFixed(1)+' V · '+fmtT(L.t)+' 경과 · '
+    +R[R.colored].sym+' '+Math.abs(d).toFixed(1)+' mm 이동', 18, hh+44, 13, 500, {base:'middle',fill:cssVar('--text-2')});
   g.textAlign='right'; g.fillStyle=cssVar('--text-3'); g.font='500 12px '+cssVar('--font-ui');
   g.fillText('ⓒ 송쌤과학 | 전기력을 이용한 이온의 이동 관찰하기', w-18, hh+33);
   try{
@@ -3033,6 +3331,8 @@ document.addEventListener('keydown',e=>{
   else if(k==='r'){ $('#btnReport').click(); }
   else if(k==='t'){ openTheory(); }
   else if(k==='m'){ $('#btnShowAll').click(); }
+  else if(k==='k'){ $('#btnElec').click(); }
+  else if(k==='q'){ $('#btnCharge').click(); }
   else if(k==='e'){ $('#btnField').click(); }
   else if(k==='c'){ if(!$('#btnSnap').disabled) takeSnap(); }
   else if(e.key===' '&&!(t.closest&&t.closest('button,a,summary,[role=button]'))){ e.preventDefault(); setPower(!L.power); }
@@ -3058,6 +3358,7 @@ function init(){
   $('#vTop').setAttribute('aria-pressed',String(L.view==='top'));
   if(L.prepOk){ $$('.safe').forEach(c=>{c.checked=true;}); $('#btnPrepOk').disabled=false; }
 
+  chemify(document.body);                  /* 처음부터 HTML 에 적힌 이온식(도움말·준비물·계기판)도 첨자로 */
   seed(); resize(); syncLayout(); syncLayout();
   updLegend(); updGauge(); renderTray(); renderQuiz(); renderEssay();
   paintSteps(); refreshGuide(); paintKeep(); paintWipeList(); describe();
