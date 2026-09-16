@@ -741,7 +741,8 @@ a.btn{text-decoration:none}
 .cmpgrid .lb{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:4px}
 .enote{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--r-2);
   background:var(--surface-1);border:1px solid var(--line-1);font-size:12px;color:var(--text-2);
-  margin-bottom:var(--s4);font-family:var(--font-note)}
+  line-height:1.65;margin-bottom:var(--s4);font-family:var(--font-note)}
+.enote b{color:var(--text-1);font-weight:600}
 .enote svg{width:var(--icon-size);height:var(--icon-size);flex:none;
   fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
@@ -1083,7 +1084,9 @@ a.btn{text-decoration:none}
         <div class="rhead"><h2>탐구 질문</h2><span class="cnt" id="essayCnt">0 / 2 작성</span></div>
         <p class="enote">
           <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg>
-          <span id="saveNote">답안은 이 수업 화면에서 자동 저장돼요.</span>
+          <span>모범 답안을 열면 <b>처음 쓴 답안은 그대로 잠기고</b>, 그 아래에 <b>✏️ 다시 쓰기</b> 칸이 열려요.
+            처음 답안을 고쳐 덮어쓰지 않으니 마음 편히 먼저 써 보세요. 두 답안 모두 리포트에 함께 남습니다.<br>
+            <span id="saveNote">답안은 이 수업 화면에서 자동 저장돼요.</span></span>
         </p>
         <div id="essayList"></div>
       </div></div>
@@ -1143,11 +1146,10 @@ a.btn{text-decoration:none}
       퍼짐은 아인슈타인 관계식 <span class="num">D = u·kT/(ze)</span> 를 따릅니다. (kT/e = 0.0257 V, 25 ℃)</p>
     <p><b>교육용 모형입니다.</b> 이온 구슬의 크기와 개수는 실제와 다르며, 관찰을 위해 시간을 배속했습니다.
       배속 값은 계기판에 항상 표시됩니다.</p>
-    <h3>교사 설정</h3>
-    <label class="check"><input type="checkbox" id="optExam">
-      <span><b>평가 모드로 바꾸기</b> — 모범 답안을 열면 처음 답안이 잠기고, 그 아래에 <b>다시 쓰기</b> 칸이 열립니다.
-      기본은 <b>학습 모드</b>로, 모범 답안을 본 뒤에도 답안을 고칠 수 있고 <b>모범 답안 열람 후 수정</b> 여부만 리포트에 남습니다.</span></label>
-    <p id="modeNow" class="note">현재 정책 · 학습 모드</p>
+    <h3>탐구 질문 답안 정책</h3>
+    <p class="note">모범 답안을 열면 <b>처음 쓴 답안은 그대로 잠기고</b>, 그 아래에 <b>✏️ 다시 쓰기</b> 칸이 열립니다.
+      처음 답안을 고쳐 덮어쓰지 않으므로 <b>모범 답안을 보기 전과 본 뒤의 생각이 나란히</b> 남고,
+      두 답안이 모두 학습 리포트에 함께 인쇄됩니다.</p>
     <h3>저장되는 것</h3>
     <label class="check"><input type="checkbox" id="optKeep">
       <span><b>이 기기에서 다음 시간에도 이어하기</b> — 체크하면 학번별 키로 이 기기에 답안이 남습니다.
@@ -1257,7 +1259,7 @@ a.btn{text-decoration:none}
   </div>
 </div>
 
-<!-- 모범 답안 열람 확인 (평가 모드) -->
+<!-- 모범 답안 열람 확인 — 처음 답안 잠금 + 다시 쓰기 -->
 <div class="modal sm" id="mLock" role="dialog" aria-label="모범 답안 확인">
   <div class="mhead"><h2>모범 답안을 볼까요?</h2></div>
   <div class="mbody">
@@ -1445,7 +1447,6 @@ const Learn={
     Dev.set('keepSid','');
   }
 };
-let EXAM = Dev.get('exam',false);          /* false = 학습 모드(기본) */
 
 /* ==========================================================================
    2. 사운드 — Web Audio 합성, 마스터 GainNode 하나
@@ -3107,7 +3108,7 @@ function finishDir(){
 }
 
 /* ==========================================================================
-   14. 탐구 질문 — 기본 학습 모드, 교사가 평가 모드를 켜면 잠금 + 다시 쓰기
+   14. 탐구 질문 — 모범 답안을 열면 처음 답안은 잠기고 ‘다시 쓰기’ 칸이 열린다
    ========================================================================== */
 const ESSAY=[
  {q:'황산 구리(Ⅱ) 수용액을 떨어뜨리고 전류를 흘렸을 때 푸른색이 (−)극 쪽으로 번진 까닭을 설명하시오.',
@@ -3127,6 +3128,11 @@ const ESSAY=[
        +'따라서 이 결과는 <mark>이온이 전하를 띠고 있다는 증거</mark>가 된다.'}
 ];
 let ES=Learn.get('essay',{}), RV=Learn.get('revise',{}), LK=Learn.get('locks',{}), HN=Learn.get('hints',{});
+/* 예전 기록 호환 — 고쳐 쓰기를 허용하던 'view' 기록도 모두 잠금으로 맞춘다 */
+(function(){ let ch=false;
+  for(const k in LK){ if(LK[k] && LK[k].m!=='lock'){ LK[k].m='lock'; ch=true; } }
+  if(ch) Learn.set('locks',LK);
+})();
 const esA=i=>ES[i]||'';
 function essayFilled(){ let n=0; for(let i=0;i<ESSAY.length;i++) if(esA(i).trim().length>=20) n++; return n; }
 function badges(i){
@@ -3134,14 +3140,13 @@ function badges(i){
   let h='';
   if(esA(i).trim().length>=20) h+='<span class="chip ok">작성함</span>';
   if(HN[i]) h+='<span class="chip hint">힌트 봄</span>';
-  if(s&&s.m==='lock') h+='<span class="chip lock">🔒 처음 답안 잠김</span>';
-  if(s&&s.m==='view'&&esA(i)!==s.at) h+='<span class="chip lock">열람 후 수정</span>';
+  if(s) h+='<span class="chip lock">🔒 처음 답안 잠김</span>';
   if(rv.length>=5) h+='<span class="chip rev">✏️ 다시 씀</span>';
   return h;
 }
 function renderEssay(){
   $('#essayList').innerHTML=ESSAY.map((e,i)=>{
-    const a=esA(i), len=a.length, ok=len>=20, s=LK[i], locked=!!(s&&s.m==='lock');
+    const a=esA(i), len=a.length, ok=len>=20, s=LK[i], locked=!!s;
     return '<details class="ecard" data-i="'+i+'" data-done="'+(ok?1:0)+'">'
       +'<summary><span class="qi">'+(i+1)+'</span><span>'+e.q+'</span>'
       +'<span class="tags">'+badges(i)+'</span></summary>'
@@ -3155,8 +3160,7 @@ function renderEssay(){
       +'<div class="epanel hintp'+(HN[i]?' on':'')+'" data-hp="'+i+'"><b>힌트</b>'+e.hint
       +'<div class="sub">힌트는 답안을 잠그지 않아요. 몇 번이든 열어 봐도 괜찮습니다.</div></div>'
       +'<div class="epanel modelp'+(s?' on':'')+'" data-mp="'+i+'"><b>모범 답안 · 이렇게 쓰면 좋아요</b>'+e.model
-      +'<div class="sub">'+(locked?'처음 답안은 그대로 남겨 두었어요. 아래 다시 쓰기 칸에 새로 정리해 보세요.'
-                               :'모범 답안과 견주어 빠뜨린 내용이 있으면 위 답안을 고쳐 써도 좋아요.')+'</div></div>'
+      +'<div class="sub">처음 답안은 그대로 남겨 두었어요. 아래 다시 쓰기 칸에 새로 정리해 보세요.</div></div>'
       +(locked?'<div class="epanel revp on" data-rp="'+i+'"><b>✏️ 모범 답안을 보고 다시 쓰기</b>'
         +'<div class="sub">처음 쓴 답안은 그대로 남습니다. 모범 답안과 견주어 빠뜨린 내용을 채워 내 문장으로 다시 정리해 보세요.</div>'
         +'<textarea data-r="'+i+'" aria-label="'+(i+1)+'번 다시 쓴 답안" placeholder="모범 답안에서 새로 알게 된 내용을 넣어 다시 써 보세요.">'
@@ -3171,7 +3175,7 @@ let pendingModel=null;
 function bindEssay(){
   $$('#essayList textarea[data-t]').forEach(ta=>ta.addEventListener('input',()=>{
     const i=+ta.dataset.t;
-    if(LK[i]&&LK[i].m==='lock') return;
+    if(LK[i]) return;
     ES[i]=ta.value; Learn.set('essay',ES);
     const len=ta.value.length, ok=len>=20;
     const el=$('[data-l="'+i+'"]');
@@ -3198,21 +3202,16 @@ function bindEssay(){
   $$('#essayList [data-model]').forEach(b=>b.onclick=()=>{
     const i=+b.dataset.model;
     if(LK[i]){ $('[data-mp="'+i+'"]').classList.toggle('on'); return; }
-    if(EXAM){ pendingModel=i; openOv('#mLock',b); }
-    else revealModel(i);
+    pendingModel=i; openOv('#mLock',b);
   });
 }
 function revealModel(i){
-  LK[i]={ m:EXAM?'lock':'view', at:esA(i) };
+  LK[i]={ m:'lock', at:esA(i) };
   Learn.set('locks',LK); renderEssay();
   const card=$('.ecard[data-i="'+i+'"]'); if(card){ card.open=true;
     card.scrollIntoView({behavior:REDUCED?'auto':'smooth',block:'center'}); }
-  if(EXAM){
-    toast('모범 답안을 열었어요. 아래 ‘다시 쓰기’ 칸에 새로 정리해 보세요',4000);
-    setTimeout(()=>{ const t=$('textarea[data-r="'+i+'"]'); if(t) t.focus(); },420);
-  } else {
-    toast('모범 답안을 열었어요. 견주어 보고 답안을 고쳐 써도 좋아요',3200);
-  }
+  toast('모범 답안을 열었어요. 처음 답안은 그대로 두고 아래 ‘다시 쓰기’ 칸에 새로 정리해 보세요',4200);
+  setTimeout(()=>{ const t=$('textarea[data-r="'+i+'"]'); if(t) t.focus(); },420);
   Snd.ok();
 }
 $('#btnLockOk').onclick=()=>{ closeOv('#mLock'); if(pendingModel!=null){ revealModel(pendingModel); pendingModel=null; } };
@@ -3253,7 +3252,7 @@ function pHead(title,blank){
     +'<span>학번 '+(blank?'':esc(ID.sid))+'</span><span>이름 '+(blank?'':esc(ID.name))+'</span>'
     +'<span>날짜 '+(blank?'':today())+'</span></div>'
     +'<div style="font-size:8.5pt;margin-top:5pt">중학교 과학 · 물질의 구성 [9과11-04] 전기력을 이용한 실험으로 이온의 이동 관찰하기'
-    +' · 답안 정책: '+(EXAM?'평가 모드(모범 답안 열람 시 처음 답안 잠금)':'학습 모드(모범 답안 열람 후에도 수정 가능)')+'</div></div>';
+    +' · 답안 정책: 모범 답안을 열면 처음 답안 잠금 · 아래에 다시 쓰기</div></div>';
 }
 const orderText=arr=>(arr||[]).map(k=>QUIZ[3].opts[k]).map((t,i)=>(i+1)+') '+t).join('  →  ');
 function quizAnsText(i){
@@ -3300,10 +3299,9 @@ function buildReport(){
   if(opt.e){
     h+='<div class="psec"><h2>탐구 질문 서술형 답안</h2>';
     ESSAY.forEach((e,i)=>{
-      const s=LK[i], rv=(RV[i]||'').trim(), locked=!!(s&&s.m==='lock');
+      const s=LK[i], rv=(RV[i]||'').trim(), locked=!!s;
       let tag = s ? '<span class="tag">모범 답안 열람함</span>' : '<span class="tag">열람 전 스스로 작성</span>';
       if(HN[i]) tag+='<span class="tag">힌트 봄</span>';
-      if(s&&s.m==='view'&&esA(i)!==s.at) tag+='<span class="tag">모범 답안 열람 후 수정</span>';
       if(rv) tag+='<span class="tag">모범 답안 보고 다시 씀</span>';
       if(locked) tag+='<span class="tag">처음 답안 잠김</span>';
       h+='<div class="pq"><div class="qt">'+(i+1)+'. '+e.q+'</div>'+tag
@@ -3507,22 +3505,6 @@ $('#btnTheme').onclick=()=>setTheme(document.documentElement.getAttribute('data-
 $('#btnHelp').onclick=()=>{ closeMenu(); paintWipeList(); openOv('#mHelp',$('#btnMore')); };
 $('#btnFs').onclick=()=>{ closeMenu(); toggleFs(); };
 
-/* 학습/평가 모드 */
-function paintMode(){
-  $('#optExam').checked=EXAM;
-  $('#modeNow').textContent='현재 정책 · '+(EXAM
-    ? '평가 모드 — 모범 답안을 열면 처음 답안이 잠기고 다시 쓰기 칸이 열립니다.'
-    : '학습 모드 — 모범 답안을 본 뒤에도 답안을 고칠 수 있습니다.');
-}
-$('#optExam').addEventListener('change',e=>{
-  const locked=Object.keys(LK).some(i=>LK[i]&&LK[i].m==='lock');
-  if(!e.target.checked && locked && !confirm('이미 잠긴 답안이 있어요. 학습 모드로 바꿔도 잠긴 답안은 그대로 남습니다. 계속할까요?')){
-    e.target.checked=true; return;
-  }
-  EXAM=e.target.checked; Dev.set('exam',EXAM); paintMode(); renderEssay();
-  toast(EXAM?'평가 모드로 바꿨어요':'학습 모드로 바꿨어요');
-});
-
 /* 이어하기 정책 */
 function paintKeep(){ $('#optKeep').checked=Learn.keep; }
 $('#optKeep').addEventListener('change',e=>{
@@ -3553,7 +3535,7 @@ function paintWipeList(){
     : '아직 저장된 학습 기록이 없어요.';
 }
 $('#btnWipe').onclick=()=>{
-  const locked=Object.keys(LK).some(i=>LK[i]&&LK[i].m==='lock');
+  const locked=Object.keys(LK).length>0;
   if(confirm('학번·이름, 탐구 질문 답안'+(Object.keys(RV).length?'과 다시 쓴 답안':'')
     +', 힌트·모범 답안 열람 기록'+(locked?'(잠금 포함)':'')+', 퀴즈와 이온 이동 방향 예측 기록, 담아 둔 조건, 실험 관찰 기록이 모두 지워져요. 계속할까요?')){
     Learn.wipe(); location.reload();
@@ -3631,7 +3613,7 @@ document.addEventListener('keydown',e=>{
    ========================================================================== */
 function init(){
   setTheme(Dev.get('theme','dark'),true);
-  readLight(); buildSprites(); paintSound(); paintMode(); paintIdChip();
+  readLight(); buildSprites(); paintSound(); paintIdChip();
 
   setVolt(L.volt);
   $$('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.sp===L.speed)));
