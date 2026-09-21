@@ -429,6 +429,22 @@ input[type=range]::-moz-range-thumb{
 .shotbox{border-radius:var(--r-2);border:1px solid var(--line-2);background:var(--surface-2);
   padding:8px;display:flex;justify-content:center}
 .shotbox img{max-width:100%;height:auto;display:block;border-radius:var(--r-1)}
+/* 촬영 창은 두 단계를 한 자리에서 갈아 끼운다 — ① 학번·이름 적기 ② 사진 저장하기.
+   단계를 창 두 개로 쌓지 않아야 "무엇을 누르면 무엇이 되는지" 순서가 헷갈리지 않는다 */
+#mShot[data-step="id"]   #shotIdChip,
+#mShot[data-step="id"]   #shotHint,
+#mShot[data-step="id"]   #btnShotRetake,
+#mShot[data-step="id"]   #btnShotSave,
+#mShot[data-step="save"] #shotIdForm,
+#mShot[data-step="save"] #btnShotNext{display:none}
+/* 리포트·학습지도 같은 기준 — 학번·이름을 맨 위에서 먼저 받고, 그다음에 인쇄·저장 버튼이 나온다.
+   이름 없이 나눠 주는 빈 학습지만 1단계에서도 열려 있다 (§10.3 예외) */
+#mReport[data-step="id"]   #repSaveBody,
+#mReport[data-step="id"]   #btnWrong,
+#mReport[data-step="id"]   #btnPng,
+#mReport[data-step="id"]   #btnPrint,
+#mReport[data-step="save"] #repIdForm,
+#mReport[data-step="save"] #btnRepNext{display:none}
 
 /* ---------------- 계기 패널 (State) + 비교 트레이 ---------------- */
 .gauge{
@@ -1254,10 +1270,23 @@ a.btn{text-decoration:none}
 </div>
 
 <!-- 학습 리포트 -->
-<div class="modal" id="mReport" role="dialog" aria-label="학습 리포트">
+<div class="modal" id="mReport" role="dialog" aria-label="학습 리포트" data-step="id">
   <div class="mhead"><h2>학습 리포트 · 학습지</h2>
     <button class="iconbtn" data-close aria-label="닫기"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
   <div class="mbody scroll">
+    <!-- 1단계 : 학번·이름부터 적는다 -->
+    <div id="repIdForm">
+      <p class="note" style="margin-bottom:12px">산출물 <b>첫 장</b>과 <b>파일 이름</b>에
+        학번 · 이름 · 날짜가 함께 인쇄돼요. 학번과 이름을 적고 <b>다음</b>을 누르면
+        인쇄 · 저장 버튼이 나옵니다. 입력한 정보는 <b>이 컴퓨터에만</b> 저장됩니다.</p>
+      <div class="field"><label for="repSid">학번</label>
+        <input id="repSid" inputmode="numeric" autocomplete="off" placeholder="예: 30412" maxlength="8"></div>
+      <div class="field"><label for="repName">이름</label>
+        <input id="repName" autocomplete="off" placeholder="예: 홍길동" maxlength="12"></div>
+      <p class="note">수업 전에 나눠 줄 <b>빈 학습지</b>는 학번·이름 없이 바로 인쇄할 수 있어요.</p>
+    </div>
+    <!-- 2단계 : 확인한 학번·이름 + 넣을 내용 -->
+    <div id="repSaveBody">
     <p id="idChip" class="note" style="margin-bottom:12px"></p>
     <h3>리포트에 넣을 내용</h3>
     <label class="check"><input type="checkbox" id="oData" checked><span>실험 관찰 기록 — 사용한 수용액 · 전압 · 이동 거리 · 담아 둔 조건</span></label>
@@ -1266,11 +1295,13 @@ a.btn{text-decoration:none}
     <label class="check" id="wQuiz"><input type="checkbox" id="oQuiz" checked><span>퀴즈 결과와 오답 노트</span></label>
     <p class="note" style="margin-top:12px">인쇄 창에서 <b>대상을 ‘PDF로 저장’</b>으로 고르면 파일로 남길 수 있어요.
       다크 모드로 보고 있어도 인쇄물은 흰 배경에 검정 글자로 나갑니다.</p>
+    </div>
   </div>
   <div class="mfoot">
     <button class="btn ghost" id="btnBlank">빈 학습지</button>
     <button class="btn ghost" id="btnWrong" hidden>오답 학습지</button>
     <button class="btn ghost" id="btnPng">결과 이미지 저장</button>
+    <button class="btn primary" id="btnRepNext">다음 ▸</button>
     <button class="btn primary" id="btnPrint">리포트 인쇄 · PDF 저장</button>
   </div>
 </div>
@@ -1290,18 +1321,33 @@ a.btn{text-decoration:none}
 </div>
 
 <!-- 촬영한 실험 사진 — 미리 보고 이미지로 저장 -->
-<div class="modal" id="mShot" role="dialog" aria-label="촬영한 실험 사진">
+<div class="modal" id="mShot" role="dialog" aria-label="촬영한 실험 사진" data-step="id">
   <div class="mhead"><h2>촬영한 실험 사진</h2>
+    <span class="chip num" id="shotStep">1 / 2</span>
     <button class="iconbtn" data-close aria-label="닫기"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
   <div class="mbody scroll">
+    <!-- 1단계 : 학번·이름부터 적는다 -->
+    <div id="shotIdForm">
+      <p class="note" style="margin-bottom:12px">사진에 <b>학번 · 이름 · 날짜</b>가 함께 찍혀요.
+        학번과 이름을 적고 <b>다음</b>을 누르면 저장 버튼이 나옵니다.
+        입력한 정보는 <b>이 컴퓨터에만</b> 저장됩니다.</p>
+      <div class="field"><label for="shotSid">학번</label>
+        <input id="shotSid" inputmode="numeric" placeholder="30412" autocomplete="off"></div>
+      <div class="field"><label for="shotName">이름</label>
+        <input id="shotName" placeholder="홍길동" autocomplete="off"></div>
+    </div>
+    <!-- 2단계 : 확인한 학번·이름을 한 줄로 접어 둔다 -->
+    <p class="note" id="shotIdChip" style="margin-bottom:12px"></p>
+
     <div class="shotbox"><img id="shotImg" alt="촬영한 실험 장면 미리보기"></div>
-    <p class="note" style="margin-top:12px">사진 아래 기록 띠에 <b>학번 · 이름 · 날짜</b>와
+    <p class="note" id="shotHint" style="margin-top:12px">사진 아래 기록 띠에 <b>학번 · 이름 · 날짜</b>와
       수용액 · 전압 · 경과 시간 · 두 이온의 이동 거리가 함께 찍힙니다.
-      <b>이미지로 저장</b>을 누르면 학번과 이름을 한 번 확인해요 — 입력한 정보는 이 컴퓨터에만 저장됩니다.</p>
+      <b>이미지로 저장</b>을 누르면 바로 내려받아요.</p>
   </div>
   <div class="mfoot">
     <button class="btn ghost" id="btnShotRetake">다시 찍기</button>
     <button class="btn ghost" data-close>닫기</button>
+    <button class="btn primary" id="btnShotNext">다음 ▸</button>
     <button class="btn primary" id="btnShotSave">이미지로 저장</button>
   </div>
 </div>
@@ -3289,8 +3335,7 @@ function paintIdChip(){
     ? '학번 <b>'+esc(ID.sid)+'</b> · 이름 <b>'+esc(ID.name)+'</b> — '
       +'<button class="btn sm ghost" id="idEdit" style="height:26px">변경</button>'
     : '산출물을 만들 때 학번과 이름을 한 번만 확인합니다.';
-  if($('#idEdit')) $('#idEdit').onclick=()=>{ idCb=null;
-    $('#fSid').value=ID.sid; $('#fName').value=ID.name; openOv('#mId',$('#idEdit')); };
+  if($('#idEdit')) $('#idEdit').onclick=()=>{ const f=repStep(1); if(f) f.focus(); };
 }
 const today=()=>{ const d=new Date(); return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.'; };
 const P_FOOT='<div class="pfoot">🧪 송쌤과학 (Song Ssaem Science) · ⓒ 2026 송세호 | 아주중학교<br>'
@@ -3454,6 +3499,28 @@ function doPrint(html,fname){
   window.addEventListener('afterprint',restore);
   setTimeout(()=>{ window.print(); setTimeout(restore,1200); },90);
 }
+/* 리포트 창의 두 단계 — 사진 저장과 같은 기준이다. ① 학번·이름 적기 ② 넣을 내용 고르고 인쇄·저장 */
+function repStep(n){
+  $('#mReport').dataset.step = n===1 ? 'id' : 'save';
+  if(n===1){
+    $('#repSid').value=ID.sid||''; $('#repName').value=ID.name||'';
+    return $('#repSid');
+  }
+  paintIdChip();
+  return $('#btnPrint');
+}
+$('#btnRepNext').onclick=()=>{
+  const sid=$('#repSid').value.trim(), name=$('#repName').value.trim();
+  if(!sid){ $('#repSid').focus(); toast('학번을 입력해야 저장할 수 있어요'); return; }
+  if(!name){ $('#repName').focus(); toast('이름을 입력해야 저장할 수 있어요'); return; }
+  ID={sid,name}; Learn.set('id',ID);
+  if(Learn.keep && Learn.sid!==sid) Learn.promote(sid);
+  Snd.click();
+  const f=repStep(2); if(f) f.focus();
+};
+[$('#repSid'),$('#repName')].forEach(el=>el.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); $('#btnRepNext').click(); }
+}));
 $('#btnReport').onclick=()=>{
   const hasEssay=essayFilled()>0||Object.keys(LK).length>0;
   const hasQuiz=Object.keys(QS.ans).length>0;
@@ -3461,21 +3528,25 @@ $('#btnReport').onclick=()=>{
   $('#wModel').style.display=hasEssay?'':'none';
   $('#wQuiz').style.display =(hasQuiz||DR.n>0) ?'':'none';
   $('#btnWrong').hidden = !hasQuiz;             /* 오답 학습지는 4문항 퀴즈의 오답만 다룬다 */
-  paintIdChip(); openOv('#mReport',$('#btnReport'));
+  const f=repStep(hasId()?2:1);                 /* 이미 적어 둔 학번·이름이면 확인만 하고 바로 2단계 */
+  openOv('#mReport',$('#btnReport'));
+  setTimeout(()=>{ if(f) f.focus(); },140);
 };
-$('#btnPrint').onclick=()=>needId(()=>{
+$('#btnPrint').onclick=()=>{
+  if(!hasId()){ const f=repStep(1); if(f) f.focus(); return; }
   closeOv('#mReport');
   doPrint(buildReport(),'이온의이동_리포트_'+ID.sid+'_'+ID.name);
-},$('#btnPrint'));
+};
+/* 빈 학습지는 이름을 적는 칸이 없는 종이다 — 1단계에서도 바로 인쇄된다 (§10.3 예외) */
 $('#btnBlank').onclick=()=>{ closeOv('#mReport'); openOv('#mBlank',$('#btnBlank')); };
 $('#btnWrong').onclick=()=>{
   if(!QS.wrong.length){                       /* 오답이 없어도 감추지 않고 빈 학습지로 잇는다 (§10.2) */
     toast('오답이 없어요. 빈 학습지로 한 번 더 연습할 수 있어요',4200);
     closeOv('#mReport'); openOv('#mBlank',$('#btnBlank')); return;
   }
-  needId(()=>{ closeOv('#mReport');
-    doPrint(buildWrong(),'이온의이동_오답학습지_'+ID.sid+'_'+ID.name);
-  },$('#btnWrong'));
+  if(!hasId()){ const f=repStep(1); if(f) f.focus(); return; }
+  closeOv('#mReport');
+  doPrint(buildWrong(),'이온의이동_오답학습지_'+ID.sid+'_'+ID.name);
 };
 $('#btnBlankPrint').onclick=()=>{
   const t=$('#oTeacher').checked; closeOv('#mBlank');
@@ -3536,42 +3607,77 @@ function buildShot(sh,withId){
   }
   return out;
 }
-/* 저장을 실행하는 순간에 학번·이름을 한 번 확인한다 (§10) — 둘은 사진 안과 파일 이름에 모두 남는다 */
-function saveShot(sh,trigger,closeSel){
-  needId(()=>{
-    try{
-      const t=sh.when, st=String(t.getMonth()+1).padStart(2,'0')+String(t.getDate()).padStart(2,'0')
-        +'-'+String(t.getHours()).padStart(2,'0')+String(t.getMinutes()).padStart(2,'0');
-      const a=document.createElement('a');
-      a.download='이온의이동_실험사진_'+ID.sid+'_'+ID.name+'_'+st+'.png';
-      a.href=buildShot(sh,true).toDataURL('image/png'); a.click();
-      if(closeSel) closeOv(closeSel);
-      Snd.ok(); toast('사진을 저장했어요. 다운로드 폴더를 확인해 주세요');
-    }catch(e){ toast('이미지를 저장하지 못했어요. 실험은 계속할 수 있어요',5000); }
-  },trigger);
-}
 let SHOT=null;
 function paintShot(){
   try{ $('#shotImg').src=buildShot(SHOT,hasId()).toDataURL('image/png'); return true; }
   catch(e){ toast('사진을 만들지 못했어요. 실험은 계속할 수 있어요',5000); return false; }
 }
+/* 촬영 창의 두 단계 — ① 학번·이름 적기 ② 사진 저장하기.
+   저장 버튼을 누른 뒤에 이름을 묻지 않는다. 묻는 순서가 곧 화면 순서다 (§10 공통 규격) */
+function shotStep(n){
+  const m=$('#mShot');
+  m.dataset.step = n===1 ? 'id' : 'save';
+  $('#shotStep').textContent = n+' / 2';
+  if(n===1){
+    $('#shotSid').value=ID.sid||''; $('#shotName').value=ID.name||'';
+    return $('#shotSid');
+  }
+  $('#shotIdChip').innerHTML='학번 <b>'+esc(ID.sid)+'</b> · 이름 <b>'+esc(ID.name)+'</b> — '
+    +'<button class="btn sm ghost" id="shotIdEdit" style="height:26px">변경</button>';
+  $('#shotIdEdit').onclick=()=>{ const f=shotStep(1); if(f) f.focus(); };
+  paintShot();                          /* 학번·이름이 들어간 사진으로 다시 그린다 */
+  return $('#btnShotSave');
+}
+function openShot(sh,trigger){
+  SHOT=sh;
+  if(!paintShot()) return;
+  const f=shotStep(hasId()?2:1);        /* 이미 적어 둔 학번·이름이면 확인만 하고 바로 2단계 */
+  openOv('#mShot',trigger);
+  setTimeout(()=>{ if(f) f.focus(); },140);
+}
 function takeShot(){
   if(!$('#pane-lab').classList.contains('on')){ toast('실험 화면에서 찍을 수 있어요'); return; }
-  SHOT=grabStage();
-  if(!paintShot()) return;
   const f=$('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
   Snd.shutter();
-  openOv('#mShot',$('#btnCam'));
-  live('실험 장면을 촬영했어요. 이미지로 저장할 수 있습니다.');
+  openShot(grabStage(),$('#btnCam'));
+  live('실험 장면을 촬영했어요. 학번과 이름을 적으면 이미지로 저장할 수 있습니다.');
 }
+/* 1단계 → 2단계. 둘 중 하나라도 비어 있으면 넘어가지 않는다 */
+$('#btnShotNext').onclick=()=>{
+  const sid=$('#shotSid').value.trim(), name=$('#shotName').value.trim();
+  if(!sid){ $('#shotSid').focus(); toast('학번을 입력해야 저장할 수 있어요'); return; }
+  if(!name){ $('#shotName').focus(); toast('이름을 입력해야 저장할 수 있어요'); return; }
+  ID={sid,name}; Learn.set('id',ID);
+  if(Learn.keep && Learn.sid!==sid) Learn.promote(sid);
+  paintIdChip(); Snd.click();
+  const f=shotStep(2); if(f) f.focus();
+};
+[$('#shotSid'),$('#shotName')].forEach(el=>el.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); $('#btnShotNext').click(); }
+}));
 $('#btnCam').onclick=takeShot;
 $('#btnShotRetake').onclick=()=>{
   SHOT=grabStage();
   if(paintShot()){ Snd.shutter(); toast('지금 화면으로 다시 찍었어요'); }
 };
-$('#btnShotSave').onclick=()=>{ if(SHOT) saveShot(SHOT,$('#btnShotSave'),'#mShot'); };
-/* 리포트 모달의 '결과 이미지 저장'도 같은 한 장을 만든다 — 진입점만 둘이고 산출물은 하나다 */
-$('#btnPng').onclick=()=>saveShot(grabStage(),$('#btnPng'),null);
+/* 2단계 저장 — 학번·이름은 이미 확인했으니 누르면 바로 내려받는다 */
+$('#btnShotSave').onclick=()=>{
+  if(!SHOT) return;
+  if(!hasId()){ const f=shotStep(1); if(f) f.focus(); return; }
+  try{
+    const t=SHOT.when, st=String(t.getMonth()+1).padStart(2,'0')+String(t.getDate()).padStart(2,'0')
+      +'-'+String(t.getHours()).padStart(2,'0')+String(t.getMinutes()).padStart(2,'0');
+    const a=document.createElement('a');
+    a.download='이온의이동_실험사진_'+ID.sid+'_'+ID.name+'_'+st+'.png';
+    a.href=buildShot(SHOT,true).toDataURL('image/png'); a.click();
+    closeOv('#mShot');
+    Snd.ok(); toast('사진을 저장했어요. 다운로드 폴더를 확인해 주세요');
+  }catch(e){ toast('이미지를 저장하지 못했어요. 실험은 계속할 수 있어요',5000); }
+};
+/* 리포트 모달의 '결과 이미지 저장'도 같은 창으로 들어온다 — 진입점만 둘이고 흐름과 산출물은 하나다 */
+$('#btnPng').onclick=()=>{
+  const sh=grabStage(); closeOv('#mReport'); openShot(sh,$('#btnReport'));
+};
 
 /* ==========================================================================
    16. 소리 · 테마 · 모드 · 저장 정책 · 단축키
