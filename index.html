@@ -302,6 +302,8 @@ textarea,input{caret-color:var(--accent-strong)}
 #app[data-narrow="on"] .dishctl .segsel.tog button{flex:1 1 auto; padding-left:7px; padding-right:7px}   /* 표시 전환 4개는 글자 길이만큼 나눠 320px 에서도 넘치지 않게 */
 #app[data-narrow="on"] .segsel button .fl{display:none}
 #app[data-narrow="on"] .segsel button .sl{display:inline}
+#app[data-narrow="on"] .camsw button{padding:0;width:34px}
+#app[data-narrow="on"] .camsw button .sl{display:none}
 #app[data-narrow="on"] .legend{gap:2px 10px}
 #app[data-narrow="on"] .legend .ln{display:none}          /* 이온 이름은 접고 기호와 방향만 남긴다 */
 #app[data-narrow="on"] .gauge{column-gap:var(--s3)}
@@ -406,10 +408,27 @@ input[type=range]::-moz-range-thumb{
 }
 /* 단자 — 캔버스 전선의 출발점 */
 
-/* ---------------- 시점 전환 ---------------- */
-.viewsw{position:absolute;top:var(--s3);left:calc(var(--w-psu) + var(--s6));z-index:3;display:flex;gap:2px;
+/* ---------------- 시점 전환 · 카메라 ---------------- */
+.viewrow{position:absolute;top:var(--s3);left:calc(var(--w-psu) + var(--s6));z-index:3;
+  display:flex;align-items:center;gap:var(--s2);flex-wrap:nowrap}
+#app[data-layout="compact"] .viewrow{left:var(--s3)}
+.viewsw{display:flex;gap:2px;flex:none;
   padding:3px;border-radius:var(--r-2);background:var(--surface-2);border:1px solid var(--line-1)}
-#app[data-layout="compact"] .viewsw{left:var(--s3)}
+/* 카메라 — 시점 전환 바로 옆. "지금 보고 있는 이 장면을 찍는다"는 뜻이 자리로 읽히게 (L4 공간 관계) */
+.camsw{flex:none}
+.camsw button{color:var(--accent-strong);font-weight:600}
+.camsw button:hover{background:var(--accent-tint);color:var(--accent-strong)}
+.camsw button:active{background:var(--accent-tint);transform:scale(.97)}
+
+/* 촬영 플래시 — 셔터가 눌렸다는 사실만 짧게 알린다 (소리를 꺼 둔 교실에서도 보이도록) */
+.flash{position:absolute;inset:0;z-index:20;pointer-events:none;background:#fff;opacity:0}
+.flash.on{animation:shotfx .34s var(--ease-out)}
+@keyframes shotfx{0%{opacity:0}12%{opacity:.82}100%{opacity:0}}
+
+/* 촬영 미리보기 — 저장될 모습 그대로(기록 띠까지) 보여 준다 */
+.shotbox{border-radius:var(--r-2);border:1px solid var(--line-2);background:var(--surface-2);
+  padding:8px;display:flex;justify-content:center}
+.shotbox img{max-width:100%;height:auto;display:block;border-radius:var(--r-1)}
 
 /* ---------------- 계기 패널 (State) + 비교 트레이 ---------------- */
 .gauge{
@@ -1005,14 +1024,22 @@ a.btn{text-decoration:none}
           </div>
         </div>
 
-        <!-- 시점 전환 -->
-        <div class="viewsw segsel" role="group" aria-label="관찰 시점">
-          <button id="vSide" aria-pressed="true" title="측면에서 보기 (1)">
-            <svg viewBox="0 0 24 24"><path d="M3 15h18M4.5 15v-3a7.5 7.5 0 0 1 15 0v3M2 18h20"/></svg>측면
-          </button>
-          <button id="vTop" aria-pressed="false" title="위에서 보기 (2)">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/></svg>위에서
-          </button>
+        <!-- 시점 전환 · 카메라 -->
+        <div class="viewrow">
+          <div class="viewsw segsel" role="group" aria-label="관찰 시점">
+            <button id="vSide" aria-pressed="true" title="측면에서 보기 (1)">
+              <svg viewBox="0 0 24 24"><path d="M3 15h18M4.5 15v-3a7.5 7.5 0 0 1 15 0v3M2 18h20"/></svg>측면
+            </button>
+            <button id="vTop" aria-pressed="false" title="위에서 보기 (2)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/></svg>위에서
+            </button>
+          </div>
+          <div class="camsw segsel">
+            <button id="btnCam" aria-label="실험 장면 촬영" title="지금 실험 장면을 사진으로 찍기 (P)">
+              <svg viewBox="0 0 24 24"><path d="M3 8.6a2 2 0 0 1 2-2h2.7l1.2-2.1h6.2l1.2 2.1H19a2 2 0 0 1 2 2v8.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.6"/></svg>
+              <span class="fl">카메라</span><span class="sl">사진</span>
+            </button>
+          </div>
         </div>
 
         <!-- 계기 + 비교 트레이 -->
@@ -1063,6 +1090,8 @@ a.btn{text-decoration:none}
           </div>
           <div class="legend" id="legend"></div>
         </div>
+
+        <div class="flash" id="flash" aria-hidden="true"></div>
 
         <p class="sr" id="live" aria-live="polite" data-nofx></p>
       </div>
@@ -1134,6 +1163,7 @@ a.btn{text-decoration:none}
       <b>1 / 2</b><span>측면 보기 / 위에서 보기</span>
       <b>M / K / Q / E</b><span>무색 이온 보기 / 전해질 이온 이동 관찰 / 전하 보기 / 전기력 표시</span>
       <b>C</b><span>이 조건 담기</span>
+      <b>P</b><span>실험 장면 촬영 — 사진을 이미지로 저장</span>
       <b>T / R / H</b><span>이론 학습 / 학습 리포트 / 도움말</span>
       <b>D / F</b><span>테마 전환 / 전체화면</span>
       <b>← →</b><span>이온 이동 방향 예측에서 (−)극 · (+)극 답하기 / 이론 학습 카드 넘기기</span>
@@ -1256,6 +1286,23 @@ a.btn{text-decoration:none}
   <div class="mfoot">
     <button class="btn ghost" data-close>취소</button>
     <button class="btn primary" id="btnBlankPrint">학습지 인쇄</button>
+  </div>
+</div>
+
+<!-- 촬영한 실험 사진 — 미리 보고 이미지로 저장 -->
+<div class="modal" id="mShot" role="dialog" aria-label="촬영한 실험 사진">
+  <div class="mhead"><h2>촬영한 실험 사진</h2>
+    <button class="iconbtn" data-close aria-label="닫기"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+  <div class="mbody scroll">
+    <div class="shotbox"><img id="shotImg" alt="촬영한 실험 장면 미리보기"></div>
+    <p class="note" style="margin-top:12px">사진 아래 기록 띠에 <b>학번 · 이름 · 날짜</b>와
+      수용액 · 전압 · 경과 시간 · 두 이온의 이동 거리가 함께 찍힙니다.
+      <b>이미지로 저장</b>을 누르면 학번과 이름을 한 번 확인해요 — 입력한 정보는 이 컴퓨터에만 저장됩니다.</p>
+  </div>
+  <div class="mfoot">
+    <button class="btn ghost" id="btnShotRetake">다시 찍기</button>
+    <button class="btn ghost" data-close>닫기</button>
+    <button class="btn primary" id="btnShotSave">이미지로 저장</button>
   </div>
 </div>
 
@@ -1480,6 +1527,7 @@ const Snd=(()=>{
     power(){ tone(180,.30,'sawtooth',.11,420); setTimeout(()=>tone(660,.16,'sine',.11),90); },
     off(){ tone(420,.20,'sine',.09,150); },
     hum(){ tone(300,.16,'triangle',.07); },
+    shutter(){ tone(1500,.035,'square',.07); setTimeout(()=>tone(820,.07,'triangle',.06),50); },
     ok(){ tone(660,.10,'sine',.15); setTimeout(()=>tone(990,.20,'sine',.13),95); },
     no(){ tone(300,.20,'triangle',.11,220); },
     done(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.24,'sine',.14),i*105)); }
@@ -3433,31 +3481,97 @@ $('#btnBlankPrint').onclick=()=>{
   const t=$('#oTeacher').checked; closeOv('#mBlank');
   doPrint(buildBlank(t),'이온의이동_학습지'+(t?'_교사용':''));
 };
-/* 결과 이미지 — 색 띠 자체가 학습 산출물이다 */
-$('#btnPng').onclick=()=>needId(()=>{
-  const pad=64, w=cv.width/DPR, hh=cv.height/DPR;
+/* ==========================================================================
+   15.5 실험 장면 사진 — 카메라 한 번에 '본 것'과 '그때의 조건'이 한 장으로
+   색 띠 자체가 학습 산출물이다. 무엇을 · 몇 볼트로 · 얼마나 오래 보았는지가
+   사진 안에 함께 남아야 나중에 다른 사진과 나란히 견줄 수 있다 (§10 공통 규격)
+   ========================================================================== */
+const SHOT_PAD=92;
+function shotLines(){
+  const R=REAGENT[L.reagent];
+  const dCat=(SIM.x0.cat-meanX('cat'))*GAP*1000, dAn=(meanX('an')-SIM.x0.an)*GAP*1000;
+  return {
+    cond:R.label+' · '+L.volt.toFixed(1)+' V · '+fmtT(L.t)+' 경과 · '
+      +(L.view==='side'?'측면':'위에서')+' 관찰 · 전기장 '+(L.power?Math.round(L.volt/GAP):0)+' V/m',
+    res :R.cat.sym+' (−)극 쪽 '+dCat.toFixed(1)+' mm   ·   '+R.an.sym+' (+)극 쪽 '+dAn.toFixed(1)+' mm'
+  };
+}
+/* 찍은 순간을 떼어 둔다 — 미리 보는 동안 실험이 계속 움직여도 그 사진은 변하지 않는다 */
+function grabStage(){
+  if(dirty){ draw(); dirty=false; }            /* 방금 바꾼 조작까지 한 장에 담는다 */
+  const c=document.createElement('canvas');
+  c.width=cv.width; c.height=cv.height;
+  c.getContext('2d').drawImage(cv,0,0);
+  return { img:c, w:cv.width/DPR, h:cv.height/DPR, dpr:DPR, line:shotLines(), when:new Date() };
+}
+/* 휴대폰처럼 좁은 화면에서 찍어도 기록 한 줄이 잘리지 않게 글자를 그만큼만 줄여 맞춘다 */
+function shotFit(g,s,px,wt,maxW){
+  const w=fxWidth(g,s,px,wt);
+  return w<=maxW ? px : Math.max(9.5, px*maxW/w);
+}
+function buildShot(sh,withId){
+  const w=sh.w, hh=sh.h, d=sh.dpr, pad=SHOT_PAD, maxW=w-36;
   const out=document.createElement('canvas');
-  out.width=Math.round(w*DPR); out.height=Math.round((hh+pad)*DPR);
-  const g=out.getContext('2d'); g.setTransform(DPR,0,0,DPR,0,0);
+  out.width=Math.round(w*d); out.height=Math.round((hh+pad)*d);
+  const g=out.getContext('2d'); g.setTransform(d,0,0,d,0,0);
   g.fillStyle=cssVar('--surface-1'); g.fillRect(0,0,w,hh+pad);
-  g.drawImage(cv,0,0,w,hh);
+  g.drawImage(sh.img,0,0,w,hh);
   g.strokeStyle=cssVar('--line-1'); g.lineWidth=1;
   g.beginPath(); g.moveTo(0,hh+.5); g.lineTo(w,hh+.5); g.stroke();
-  const R=REAGENT[L.reagent], d=colDist();
+  const t=sh.when, day=t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'.';
+  const clock=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  const head=(withId ? '학번 '+ID.sid+'   이름 '+ID.name : '학번 —   이름 —')+'   '+day+' '+clock;
+  const resPx=shotFit(g,sh.line.res,13,600,maxW);
   g.textBaseline='middle'; g.textAlign='left';
-  g.fillStyle=cssVar('--text-1'); g.font='600 15px '+cssVar('--font-ui');
-  g.fillText('학번 '+ID.sid+'   이름 '+ID.name+'   '+today(), 18, hh+22);
-  fxText(g,R.label+' · '+L.volt.toFixed(1)+' V · '+fmtT(L.t)+' 경과 · '
-    +R[R.colored].sym+' '+Math.abs(d).toFixed(1)+' mm 이동', 18, hh+44, 13, 500, {base:'middle',fill:cssVar('--text-2')});
-  g.textAlign='right'; g.fillStyle=cssVar('--text-3'); g.font='500 12px '+cssVar('--font-ui');
-  g.fillText('ⓒ 송쌤과학 | 전기력을 이용한 이온의 이동 관찰하기', w-18, hh+33);
-  try{
-    const a=document.createElement('a');
-    a.download='이온의이동_결과_'+ID.sid+'_'+ID.name+'.png';
-    a.href=out.toDataURL('image/png'); a.click();
-    toast('저장했어요. 다운로드 폴더를 확인해 주세요');
-  }catch(e){ toast('이미지를 저장하지 못했어요. 실험은 계속할 수 있어요',5000); }
-},$('#btnPng'));
+  fxText(g,head        ,18,hh+26,shotFit(g,head,15,600,maxW)        ,600,{base:'middle',fill:cssVar('--text-1')});
+  fxText(g,sh.line.cond,18,hh+50,shotFit(g,sh.line.cond,13,500,maxW),500,{base:'middle',fill:cssVar('--text-2')});
+  fxText(g,sh.line.res ,18,hh+72,resPx                              ,600,{base:'middle',fill:cssVar('--text-1')});
+  /* 워터마크는 자리가 남을 때만 — 캔버스 안에 이미 한 번 찍혀 있으니 좁은 화면에서 결과 줄을 덮지 않게 한다 */
+  const wm='ⓒ 송쌤과학 | 전기력을 이용한 이온의 이동 관찰하기';
+  const wmFont='500 11.5px '+cssVar('--font-ui');
+  g.font=wmFont; const wmW=g.measureText(wm).width;
+  if(fxWidth(g,sh.line.res,resPx,600)+wmW+56<=w){
+    g.save(); g.font=wmFont; g.textAlign='right'; g.textBaseline='middle';
+    g.fillStyle=cssVar('--text-3'); g.fillText(wm,w-18,hh+72); g.restore();
+  }
+  return out;
+}
+/* 저장을 실행하는 순간에 학번·이름을 한 번 확인한다 (§10) — 둘은 사진 안과 파일 이름에 모두 남는다 */
+function saveShot(sh,trigger,closeSel){
+  needId(()=>{
+    try{
+      const t=sh.when, st=String(t.getMonth()+1).padStart(2,'0')+String(t.getDate()).padStart(2,'0')
+        +'-'+String(t.getHours()).padStart(2,'0')+String(t.getMinutes()).padStart(2,'0');
+      const a=document.createElement('a');
+      a.download='이온의이동_실험사진_'+ID.sid+'_'+ID.name+'_'+st+'.png';
+      a.href=buildShot(sh,true).toDataURL('image/png'); a.click();
+      if(closeSel) closeOv(closeSel);
+      Snd.ok(); toast('사진을 저장했어요. 다운로드 폴더를 확인해 주세요');
+    }catch(e){ toast('이미지를 저장하지 못했어요. 실험은 계속할 수 있어요',5000); }
+  },trigger);
+}
+let SHOT=null;
+function paintShot(){
+  try{ $('#shotImg').src=buildShot(SHOT,hasId()).toDataURL('image/png'); return true; }
+  catch(e){ toast('사진을 만들지 못했어요. 실험은 계속할 수 있어요',5000); return false; }
+}
+function takeShot(){
+  if(!$('#pane-lab').classList.contains('on')){ toast('실험 화면에서 찍을 수 있어요'); return; }
+  SHOT=grabStage();
+  if(!paintShot()) return;
+  const f=$('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+  Snd.shutter();
+  openOv('#mShot',$('#btnCam'));
+  live('실험 장면을 촬영했어요. 이미지로 저장할 수 있습니다.');
+}
+$('#btnCam').onclick=takeShot;
+$('#btnShotRetake').onclick=()=>{
+  SHOT=grabStage();
+  if(paintShot()){ Snd.shutter(); toast('지금 화면으로 다시 찍었어요'); }
+};
+$('#btnShotSave').onclick=()=>{ if(SHOT) saveShot(SHOT,$('#btnShotSave'),'#mShot'); };
+/* 리포트 모달의 '결과 이미지 저장'도 같은 한 장을 만든다 — 진입점만 둘이고 산출물은 하나다 */
+$('#btnPng').onclick=()=>saveShot(grabStage(),$('#btnPng'),null);
 
 /* ==========================================================================
    16. 소리 · 테마 · 모드 · 저장 정책 · 단축키
@@ -3597,6 +3711,7 @@ document.addEventListener('keydown',e=>{
   else if(k==='q'){ $('#btnCharge').click(); }
   else if(k==='e'){ $('#btnField').click(); }
   else if(k==='c'){ if(!$('#btnSnap').disabled) takeSnap(); }
+  else if(k==='p'){ takeShot(); }
   else if(e.key===' '&&!(t.closest&&t.closest('button,a,summary,[role=button]'))){ e.preventDefault(); setPower(!L.power); }
   else if(e.key==='1'){ setView('side'); }
   else if(e.key==='2'){ setView('top'); }
